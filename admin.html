@@ -7,6 +7,8 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase Messaging SDK for Push Notifications -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #121824; color: #fff; margin: 0; padding: 15px; }
         .card { max-width: 650px; margin: 0 auto 20px auto; background: #1e2738; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
@@ -44,10 +46,10 @@
         <!-- Live Customer Bookings -->
         <div class="card" style="border: 1px solid #22c55e;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="color:#22c55e; font-size:18px; margin:0;">🚨 Live Bookings & Alerts</h3>
-                <button onclick="requestNotificationPermission()" style="background:#0ea5e9; border:none; color:#fff; padding:6px 10px; border-radius:6px; font-size:11px; cursor:pointer;">🔔 नोटिफिकेशन चालू करें</button>
+                <h3 style="color:#22c55e; font-size:18px; margin:0;">🚨 Live Bookings & Push Alerts</h3>
+                <button onclick="setupFCM(window.db)" style="background:#0ea5e9; border:none; color:#fff; padding:6px 10px; border-radius:6px; font-size:11px; cursor:pointer;">🔔 नोटिफिकेशन चालू करें</button>
             </div>
-            <div class="sub" style="text-align: left; margin-bottom: 10px;">नई बुकिंग आते ही घंटी बजेगी और नोटिफिकेशन दिखेगा</div>
+            <div class="sub" style="text-align: left; margin-bottom: 10px;">नई बुकिंग आते ही डेटा अपडेट हो जाएगा</div>
             <div style="overflow-x: auto;">
                 <table>
                     <thead>
@@ -149,7 +151,6 @@
 
     <script>
         const CORRECT_PASSWORD = "YASMEEN";
-        let isInitialLoad = true;
 
         function checkPassword() {
             if (document.getElementById('adminPassword').value === CORRECT_PASSWORD) {
@@ -161,34 +162,32 @@
             }
         }
 
-        function requestNotificationPermission() {
-            if ("Notification" in window) {
-                Notification.requestPermission().then(permission => {
+        // 🔔 FCM Token Setup Function (Step 2 Added)
+        function setupFCM(dbInstance) {
+            try {
+                const messaging = firebase.messaging();
+                Notification.requestPermission().then((permission) => {
                     if (permission === "granted") {
-                        alert("✅ नोटिफिकेशन चालू हो गए हैं! अब नया ऑर्डर आने पर आपको अलर्ट मिलेगा।");
+                        messaging.getToken().then((currentToken) => {
+                            if (currentToken) {
+                                dbInstance.collection("admin_tokens").doc(currentToken).set({
+                                    token: currentToken,
+                                    updatedAt: new Date()
+                                }, { merge: true });
+                                alert("✅ नोटिफिकेशन सफलतापूर्वक चालू हो गए हैं!");
+                            } else {
+                                console.log('No registration token available.');
+                            }
+                        }).catch((err) => {
+                            console.log('An error occurred while retrieving token. ', err);
+                        });
                     } else {
                         alert("⚠️ आपने नोटिफिकेशन की अनुमति नहीं दी है।");
                     }
                 });
-            } else {
-                alert("आपका ब्राउज़र नोटिफिकेशन सपोर्ट नहीं करता।");
+            } catch (e) {
+                console.log("FCM error:", e);
             }
-        }
-
-        // Beep Sound Function using Web Audio API
-        function playBeepSound() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // Frequency in Hz
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.4); // 0.4 seconds beep
-            } catch(e) {}
         }
 
         function initAdmin() {
@@ -203,6 +202,10 @@
             };
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             const db = firebase.firestore();
+            window.db = db;
+
+            // Automatically request and setup FCM on login
+            setupFCM(db);
 
             // Realtime Cars List
             db.collection("cars").onSnapshot(snapshot => {
@@ -222,37 +225,14 @@
                 });
             });
 
-            // Realtime Bookings List with Sound & Push Notification
+            // Realtime Bookings List
             db.collection("bookings").orderBy("timestamp", "desc").onSnapshot(snapshot => {
                 const tbody = document.getElementById('bookingsTable');
-                
                 if (snapshot.empty) {
                     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#aaa;">कोई नई बुकिंग नहीं है।</td></tr>`;
-                    isInitialLoad = false;
                     return;
                 }
-
-                // Check if a brand new booking was added after page load
-                if (!isInitialLoad) {
-                    snapshot.docChanges().forEach(change => {
-                        if (change.type === "added") {
-                            const b = change.doc.data();
-                            playBeepSound(); // Play alert sound
-                            
-                            // Trigger browser push notification
-                            if ("Notification" in window && Notification.permission === "granted") {
-                                new Notification("🚖 नई कैब बुकिंग आई है!", {
-                                    body: `${b.name} (${b.phone}) ने ${b.car} बुक किया है!\nरूट: ${b.pickup} ➔ ${b.drop}`,
-                                    icon: "https://cdn-icons-png.flaticon.com/512/3097/3097144.png"
-                                });
-                            }
-                        }
-                    });
-                }
-
-                isInitialLoad = false;
                 tbody.innerHTML = '';
-                
                 snapshot.forEach(doc => {
                     const b = doc.data();
                     tbody.innerHTML += `
@@ -266,8 +246,6 @@
                     `;
                 });
             });
-
-            window.db = db;
         }
 
         function saveCarDetails() {
