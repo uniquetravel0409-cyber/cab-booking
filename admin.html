@@ -9,17 +9,17 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #121824; color: #fff; margin: 0; padding: 15px; }
-        .card { max-width: 600px; margin: 0 auto 20px auto; background: #1e2738; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .card { max-width: 650px; margin: 0 auto 20px auto; background: #1e2738; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         h2 { text-align: center; color: #4ba3e3; margin-bottom: 5px; }
         .sub { text-align: center; font-size: 13px; color: #aaa; margin-bottom: 20px; }
         .form-group { margin-bottom: 12px; }
         label { font-size: 13px; font-weight: bold; color: #ffb400; display: block; margin-bottom: 4px; }
         input, select, textarea { width: 100%; padding: 10px; background: #0f141d; border: 1px solid #2d384e; border-radius: 6px; box-sizing: border-box; font-size: 14px; color: #fff; }
         .btn { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-danger { background: #dc3545; }
+        .btn-danger { background: #dc3545; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; border: none; color: white; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
-        th, td { padding: 8px; border-bottom: 1px solid #2d384e; text-align: left; }
+        th, td { padding: 10px; border-bottom: 1px solid #2d384e; text-align: left; }
         th { color: #4ba3e3; }
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b0e14; display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .login-box { background: #1e2738; padding: 30px; border-radius: 12px; text-align: center; width: 90%; max-width: 320px; }
@@ -40,11 +40,34 @@
 
     <!-- 🛠️ Main Control Panel -->
     <div id="adminPanel" style="display:none;">
+        
+        <!-- 3. Live Customer Bookings (Top पर ताकि तुरंत दिखे) -->
+        <div class="card" style="border: 1px solid #4ba3e3;">
+            <h3 style="color:#4ba3e3; font-size:18px; text-align:center; margin-top:0;">📋 Live Customer Bookings & Schedule</h3>
+            <div class="sub">कस्टमर द्वारा की गई नई बुकिंग (तारीख और समय सहित)</div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Car / Route</th>
+                            <th>Trip Date & Time</th>
+                            <th>Fare</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingsTable">
+                        <tr><td colspan="5" style="text-align:center; color:#aaa;">लोड हो रहा है...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 1. Edit Vehicle Rates & Charges -->
         <div class="card">
             <h2>Unique Tour & Travels</h2>
             <div class="sub">🛠️ Master App & Rate Manager</div>
 
-            <!-- 1. Edit Vehicle Rates & Charges -->
             <h3 style="color:#28a745; font-size:16px;">🚖 Add / Edit Vehicle Rates</h3>
             
             <div class="form-group">
@@ -119,22 +142,6 @@
             <button class="btn" style="background:#007bff;" onclick="updateAppContent()">📢 Update User App Content</button>
         </div>
 
-        <!-- 3. Live Customer Bookings -->
-        <div class="card">
-            <h3 style="color:#4ba3e3; font-size:16px;">📋 Received Customer Bookings</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Customer</th>
-                        <th>Phone</th>
-                        <th>Car</th>
-                        <th>Route</th>
-                        <th>Fare</th>
-                    </tr>
-                </thead>
-                <tbody id="bookingsTable"></tbody>
-            </table>
-        </div>
     </div>
 
     <script>
@@ -181,19 +188,23 @@
                 });
             });
 
-            // Realtime Bookings List
+            // Realtime Bookings List with Date & Time
             db.collection("bookings").orderBy("timestamp", "desc").onSnapshot(snapshot => {
                 const tbody = document.getElementById('bookingsTable');
+                if (snapshot.empty) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#aaa;">कोई नई बुकिंग नहीं है।</td></tr>`;
+                    return;
+                }
                 tbody.innerHTML = '';
                 snapshot.forEach(doc => {
                     const b = doc.data();
                     tbody.innerHTML += `
                         <tr>
-                            <td><b>${b.name}</b></td>
-                            <td><a href="tel:${b.phone}" style="color:#4ba3e3;">${b.phone}</a></td>
-                            <td>${b.car}</td>
-                            <td>${b.pickup} ➔ ${b.drop}</td>
-                            <td style="color:#28a745; font-weight:bold;">${b.total}</td>
+                            <td><b>${b.name}</b><br><a href="tel:${b.phone}" style="color:#4ba3e3; font-size:12px;">📞 ${b.phone}</a></td>
+                            <td><b>${b.car}</b><br><span style="font-size:11px; color:#bbb;">${b.pickup} ➔ ${b.drop}</span></td>
+                            <td><span style="color:#ffb400; font-weight:bold;">📅 ${b.bookingDate || 'N/A'}</span><br><span style="font-size:12px; color:#38bdf8;">⏰ ${b.bookingTime || 'N/A'}</span></td>
+                            <td style="color:#28a745; font-weight:bold; font-size:14px;">${b.total}</td>
+                            <td><button class="btn-danger" onclick="deleteBooking('${doc.id}')">Delete</button></td>
                         </tr>
                     `;
                 });
@@ -244,6 +255,12 @@
         function deleteCar(id) {
             if (confirm("Delete this vehicle?")) {
                 window.db.collection("cars").doc(id).delete();
+            }
+        }
+
+        function deleteBooking(id) {
+            if (confirm("क्या आप इस बुकिंग रिकॉर्ड को हटाना चाहते हैं?")) {
+                window.db.collection("bookings").doc(id).delete();
             }
         }
     </script>
