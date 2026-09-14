@@ -1,95 +1,212 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Unique Tours - Admin Control</title>
-  <style>
-    body { font-family: sans-serif; background-color: #0f1015; color: white; padding: 20px; display: flex; justify-content: center; }
-    .admin-card { background: #1a1c23; padding: 25px; border-radius: 12px; width: 100%; max-width: 400px; border: 1px solid #2d3139; }
-    input, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #3f444e; box-sizing: border-box; }
-    input { background: #12141a; color: white; }
-    button { background: #00b894; color: white; font-weight: bold; cursor: pointer; border: none; }
-    .hidden { display: none; }
-    label { font-size: 13px; color: #00cec9; font-weight: bold; }
-  </style>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unique Tour & Travels - Admin Control Panel</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1e29; color: #e1e6ed; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: #242b3d; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        h1 { text-align: center; color: #4ba3e3; margin-bottom: 5px; font-size: 26px; }
+        .subtitle { text-align: center; color: #8a99ad; font-size: 14px; margin-bottom: 25px; }
+        .card { background: #2d364d; border-radius: 8px; padding: 20px; margin-bottom: 20px; border-left: 4px solid #4ba3e3; }
+        .card h2 { margin-top: 0; font-size: 18px; color: #ffb400; display: flex; align-items: center; gap: 8px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 10px; }
+        label { display: block; font-size: 13px; margin-bottom: 5px; color: #aaa; }
+        input, select { width: 100%; padding: 10px; background: #1a1e29; border: 1px solid #3d4966; border-radius: 6px; color: #fff; font-size: 14px; box-sizing: border-box; }
+        .btn { background: #34a853; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn:hover { background: #2d9247; }
+        .btn-delete { background: #ea4335; padding: 6px 10px; font-size: 12px; border: none; border-radius: 4px; color: #fff; cursor: pointer; }
+        .btn-delete:hover { background: #c53929; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #3d4966; }
+        th { background: #1a1e29; color: #4ba3e3; }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>Unique Tour & Travels</h1>
+        <div class="subtitle">🛠️ Admin Live Control Dashboard</div>
 
-  <div id="loginBox" class="admin-card">
-    <h2>🔒 Admin Login</h2>
-    <p style="font-size:12px; color:#a4b0be;">दरें बदलने के लिए एडमिन पासवर्ड दर्ज करें:</p>
-    <input type="password" id="adminPass" placeholder="पासवर्ड">
-    <button onclick="login()">लॉगिन करें</button>
-  </div>
+        <!-- 1. Global Rule Settings -->
+        <div class="card">
+            <h2>⚙️ Global Booking Settings</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Owner Contact Phone:</label>
+                    <input type="text" id="ownerPhone" value="+918767603554">
+                </div>
+                <div class="form-group">
+                    <label>Driver Bhatta (₹ / Day):</label>
+                    <input type="number" id="driverBhatta" value="500">
+                </div>
+                <div class="form-group">
+                    <label>Min KM Rule (Per Day):</label>
+                    <input type="number" id="minKmPerDay" value="300">
+                </div>
+            </div>
+            <button class="btn" onclick="saveGlobalSettings()">💾 Update Settings</button>
+        </div>
 
-  <div id="dashboard" class="admin-card hidden">
-    <h2>⚙️ Live Rate Manager</h2>
-    <label>Hatchback Rate (₹/KM):</label>
-    <input type="number" id="hatchbackRate">
-    <label>Sedan Rate (₹/KM):</label>
-    <input type="number" id="sedanRate">
-    <label>SUV Rate (₹/KM):</label>
-    <input type="number" id="suvRate">
-    <label>ड्राइवर भत्ता (Driver Allowance ₹):</label>
-    <input type="number" id="driverAllowance">
-    <label>टोल टैक्स प्रति KM (Toll Rate ₹):</label>
-    <input type="number" id="tollRate" step="0.1">
-    <button onclick="saveSettings()">गूगल सर्वर पर सेव करें</button>
-  </div>
+        <!-- 2. Fleet & Rate Management -->
+        <div class="card">
+            <h2>🚖 Fleet & Rates Management</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Car / Category Name:</label>
+                    <input type="text" id="carName" placeholder="e.g., Swift Dzire">
+                </div>
+                <div class="form-group">
+                    <label>Rate per KM (₹):</label>
+                    <input type="number" id="carRate" placeholder="e.g., 12">
+                </div>
+                <div class="form-group">
+                    <label>Capacity / Type:</label>
+                    <input type="text" id="carSeats" placeholder="e.g., 4 + 1 Seater (Sedan)">
+                </div>
+                <div class="form-group">
+                    <label>Discount (%):</label>
+                    <input type="number" id="carDiscount" placeholder="e.g., 5">
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Car Image URL:</label>
+                    <input type="text" id="carImg" placeholder="https://images.unsplash.com/...">
+                </div>
+            </div>
+            <button class="btn" onclick="addOrUpdateCar()">➕ Add / Update Car</button>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyD8jphpAWpQ5PXwIy3LxxQ4xMvngpGx5xs",
-    authDomain: "uniqueridetaxi.firebaseapp.com",
-    databaseURL: "https://uniqueridetaxi-default-rtdb.firebaseio.com",
-    projectId: "uniqueridetaxi",
-    storageBucket: "uniqueridetaxi.appspot.com",
-    messagingSenderId: "611563174193",
-    appId: "1:611563174193:web:4cb11a15ed57a1df761810"
-  };
+            <table style="margin-top:20px;">
+                <thead>
+                    <tr>
+                        <th>Car Name</th>
+                        <th>Rate/KM</th>
+                        <th>Capacity</th>
+                        <th>Discount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="carsList"></tbody>
+            </table>
+        </div>
 
-  firebase.initializeApp(firebaseConfig);
-  const database = firebase.database();
-  const ADMIN_PASSWORD = "1234"; 
+        <!-- 3. Realtime Customer Bookings -->
+        <div class="card">
+            <h2>📋 Received Customer Bookings</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Phone</th>
+                        <th>Car</th>
+                        <th>Route</th>
+                        <th>Fare</th>
+                    </tr>
+                </thead>
+                <tbody id="bookingsList"></tbody>
+            </table>
+        </div>
+    </div>
 
-  function login() {
-    let pass = document.getElementById('adminPass').value;
-    if(pass === ADMIN_PASSWORD) {
-      document.getElementById('loginBox').classList.add('hidden');
-      document.getElementById('dashboard').classList.remove('hidden');
-      loadLiveRates();
-    } else {
-      alert("गलत पासवर्ड!");
-    }
-  }
+    <script>
+        // YOUR FIREBASE CONFIGURATION LOADED
+        const firebaseConfig = {
+            apiKey: "AIzaSyD8jphpAWpQ5PXwIy3LxxQ4xMvngpGx5xs",
+            authDomain: "uniqueridetaxi.firebaseapp.com",
+            databaseURL: "https://uniqueridetaxi-default-rtdb.firebaseio.com",
+            projectId: "uniqueridetaxi",
+            storageBucket: "uniqueridetaxi.firebasestorage.app",
+            messagingSenderId: "611563174193",
+            appId: "1:611563174193:web:4cb11a15ed57a1df761810",
+            measurementId: "G-VGBPZN6JZ5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-  function loadLiveRates() {
-    database.ref('cabRates').once('value').then((snapshot) => {
-      const rates = snapshot.val() || { hatchback: 12, sedan: 15, suv: 22, driverAllowance: 350, tollRate: 1.6 };
-      document.getElementById('hatchbackRate').value = rates.hatchback;
-      document.getElementById('sedanRate').value = rates.sedan;
-      document.getElementById('suvRate').value = rates.suv;
-      document.getElementById('driverAllowance').value = rates.driverAllowance;
-      document.getElementById('tollRate').value = rates.tollRate;
-    });
-  }
+        // Load Saved Settings
+        db.collection("settings").doc("config").get().then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById('ownerPhone').value = data.ownerPhone || "+918767603554";
+                document.getElementById('driverBhatta').value = data.driverBhatta || 500;
+                document.getElementById('minKmPerDay').value = data.minKmPerDay || 300;
+            }
+        });
 
-  function saveSettings() {
-    let newRates = {
-      hatchback: parseFloat(document.getElementById('hatchbackRate').value),
-      sedan: parseFloat(document.getElementById('sedanRate').value),
-      suv: parseFloat(document.getElementById('suvRate').value),
-      driverAllowance: parseFloat(document.getElementById('driverAllowance').value),
-      tollRate: parseFloat(document.getElementById('tollRate').value)
-    };
-    
-    database.ref('cabRates').set(newRates).then(() => {
-      alert("✅ नए रेट्स Google Firebase पर लाइव हो गए हैं!");
-    }).catch(err => alert("एरर: " + err.message));
-  }
-</script>
+        function saveGlobalSettings() {
+            db.collection("settings").doc("config").set({
+                ownerPhone: document.getElementById('ownerPhone').value,
+                driverBhatta: parseFloat(document.getElementById('driverBhatta').value),
+                minKmPerDay: parseFloat(document.getElementById('minKmPerDay').value)
+            }).then(() => alert("✅ Settings updated successfully!"));
+        }
+
+        // Sync Fleet Realtime
+        db.collection("cars").onSnapshot(snapshot => {
+            const list = document.getElementById('carsList');
+            list.innerHTML = '';
+            snapshot.forEach(doc => {
+                const car = doc.data();
+                list.innerHTML += `
+                    <tr>
+                        <td><b>${car.name}</b></td>
+                        <td>₹${car.rate}</td>
+                        <td>${car.seats}</td>
+                        <td>${car.discount}% Off</td>
+                        <td><button class="btn-delete" onclick="deleteCar('${doc.id}')">Delete</button></td>
+                    </tr>
+                `;
+            });
+        });
+
+        function addOrUpdateCar() {
+            const name = document.getElementById('carName').value.trim();
+            const rate = parseFloat(document.getElementById('carRate').value);
+            const seats = document.getElementById('carSeats').value.trim();
+            const discount = parseFloat(document.getElementById('carDiscount').value) || 0;
+            const img = document.getElementById('carImg').value.trim();
+
+            if (!name || isNaN(rate)) {
+                alert("Please enter valid Car Name and Rate/KM.");
+                return;
+            }
+
+            db.collection("cars").doc(name).set({ name, rate, seats, discount, img }).then(() => {
+                alert("✅ Car details saved!");
+                document.getElementById('carName').value = '';
+                document.getElementById('carRate').value = '';
+                document.getElementById('carSeats').value = '';
+                document.getElementById('carDiscount').value = '';
+                document.getElementById('carImg').value = '';
+            });
+        }
+
+        function deleteCar(carId) {
+            if (confirm("Are you sure you want to delete this car?")) {
+                db.collection("cars").doc(carId).delete();
+            }
+        }
+
+        // Sync Customer Bookings Realtime
+        db.collection("bookings").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+            const list = document.getElementById('bookingsList');
+            list.innerHTML = '';
+            snapshot.forEach(doc => {
+                const b = doc.data();
+                list.innerHTML += `
+                    <tr>
+                        <td><b>${b.name}</b></td>
+                        <td><a href="tel:${b.phone}" style="color:#4ba3e3;">${b.phone}</a></td>
+                        <td>${b.car}</td>
+                        <td>${b.pickup} ➔ ${b.drop}</td>
+                        <td style="color:#2d9247; font-weight:bold;">${b.total}</td>
+                    </tr>
+                `;
+            });
+        });
+    </script>
 </body>
 </html>
