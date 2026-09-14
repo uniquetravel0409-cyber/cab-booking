@@ -1,418 +1,127 @@
 <!DOCTYPE html>
-<html lang="mr">
-  <head>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Unique Tours - Professional Cab Booking & Fare Calculator</title>
-        <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f1015; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { background: #1a1c23; padding: 25px; border-radius: 14px; box-shadow: 0 8px 25px rgba(0,0,0,0.6); width: 100%; max-width: 450px; text-align: center; border: 1px solid #2d3139; }
-        h2 { color: #ffffff; margin-bottom: 8px; }
-        p { color: #a4b0be; font-size: 13.5px; margin-bottom: 15px; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #3f444e; background-color: #12141a; color: #ffffff; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        input::placeholder { color: #747d8c; }
-        input:focus, select:focus { outline: none; border-color: #00cec9; }
-        button { background-color: #00b894; color: white; padding: 12px; width: 100%; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: background 0.3s; }
-        button:hover { background-color: #019875; }
-        .map-btn { background-color: #0984e3; margin-top: 5px; margin-bottom: 10px; font-size: 14px; display: block; text-decoration: none; padding: 11px; border-radius: 6px; color: white; font-weight: bold; }
-        .map-btn:hover { background-color: #74b9ff; }
-        .spam-box { background: #14282b; border-left: 4px solid #00cec9; padding: 10px; font-size: 12.5px; color: #81ecec; text-align: left; margin-bottom: 12px; border-radius: 4px; }
-        .hidden { display: none; }
-        .success-box { background: #13261f; padding: 15px; border-radius: 6px; color: #55efc4; border: 1px solid #00b894; text-align: left; }
-        .fare-display { background: #222631; padding: 15px; border-radius: 8px; color: #00cec9; margin: 12px 0; font-size: 14px; border: 1px solid #00cec9; text-align: left; }
-        .fare-display div { display: flex; justify-content: space-between; margin: 5px 0; }
-        .fare-total { font-size: 17px; font-weight: bold; border-top: 1px dashed #3f444e; padding-top: 8px; margin-top: 8px; color: #55efc4; }
-        .section-label { font-size: 12px; font-weight: bold; color: #dfe4ea; text-align: left; margin-top: 5px; display: block; }
-        .auto-km-info { font-size: 11.5px; color: #00cec9; text-align: left; margin-top: -4px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
-        .loading-text { color: #fdcb6e; font-size: 11px; font-style: italic; }
-        .discount-box { background: #1b212c; border: 1px dashed #0984e3; padding: 10px; border-radius: 6px; margin: 10px 0; text-align: left; }
-        .discount-tags { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
-        .tag { background: #0984e3; color: white; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .tag:hover { background: #74b9ff; }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unique Tour & Travels - Online Cab Booking</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 15px; color: #333; }
+        .card { max-width: 500px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #007bff; margin-bottom: 5px; }
+        .sub { text-align: center; font-size: 13px; color: #666; margin-bottom: 20px; }
+        .form-group { margin-bottom: 12px; }
+        label { font-size: 13px; font-weight: bold; color: #444; display: block; margin-bottom: 4px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .btn { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .price-box { background: #e9ecef; padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; color: #28a745; font-size: 18px; }
     </style>
-      </head>
-      <body>
-        <div class="container">
-          <!-- Step 1 Form: Captures Name & Phone and instantly sends Gmail notification -->
-          <form id="step1Form" action="https://formspree.io/f/xnpqrwnq" method="POST">
-            <div id="step1">
-              <h2>Unique Tours</h2>
-              <p>कृपया पुढे जाण्यासाठी आपले नाव आणि मोबाईल नंबर प्रविष्ट करा</p>
-              <div class="spam-box">
-                🛡️ <strong>नो स्पॅम प्रॉमिस:</strong> तुमचा नंबर पूर्णपणे सुरक्षित आहे. तुरंत कॉलिंग सपोर्ट उपलब्ध.
-              </div>
-              <input type="text" name="Client_Name" id="userName" placeholder="आपले नाव (Your Name)" required>
-                <input type="tel" name="Client_Phone" id="userPhone" placeholder="मोबाईल नंबर (Mobile Number)" required>
-                  <input type="hidden" name="Action_Type" value="New Customer Lead (Name & Phone Entered)">
-                    <button type="button" onclick="submitStep1AndNext()">पुढे चला (Next)</button>
-                  </div>
-                </form>
-                <!-- Step 2 & 3 Container -->
-                <div id="step2And3Container" class="hidden">
-                  <form id="finalBookingForm" action="https://formspree.io/f/xnpqrwnq" method="POST">
-                    <input type="hidden" name="Client_Name" id="confirmedName">
-                      <input type="hidden" name="Client_Phone" id="confirmedPhone">
-                        <input type="hidden" name="Trip_Type" id="hiddenTripType">
-                          <input type="hidden" name="Vehicle" id="hiddenVehicle">
-                            <input type="hidden" name="Total_Distance_KM" id="hiddenDistance">
-                              <input type="hidden" name="Route" id="hiddenRoute">
-                                <input type="hidden" name="Estimated_Fare" id="hiddenFare">
-                                  <input type="hidden" name="Applied_Discount" id="hiddenDiscountInfo">
-                                    <div id="step2">
-                                      <h2>Advanced Cab Fare Calculator</h2>
-                                      <p>वन-वे, राऊंड-ट्रिप, लोकल आणि डिस्काउंट ऑफर</p>
-                                      <!-- Trip Type Selector -->
-                                      <select id="tripType" onchange="handleTripTypeChange()">
-                                        <option value="One-Way">वन-वे ट्रिप (One-Way Drop - रिटर्न समायोजन सह)</option>
-                                        <option value="Round-Trip">राऊंड ट्रिप / रिटर्न (Round Trip)</option>
-                                        <option value="Local">लोकल पॅकेज (Local 8 Hrs / 80 KM)</option>
-                                        <option value="Multi-City">मल्टी-सिटी (Multi-City - 4 Locations)</option>
-                                      </select>
-                                      <!-- Vehicle Selector -->
-                                      <select id="vehicleType" onchange="calculateFare()">
-                                        <option value="Hatchback">हॅचबॅक - Hatchback (₹12/km)</option>
-                                        <option value="Sedan">सेडान - Sedan (₹15/km)</option>
-                                        <option value="SUV">एसयूव्ही - SUV (₹22/km)</option>
-                                      </select>
-                                      <!-- Standard Locations (For One-Way / Round-Trip) -->
-                                      <div id="standardRouteInputs">
-                                        <input type="text" id="pickupLocation" placeholder="कुठून जायचे आहे? (उदा. Virar)" onblur="fetchAccurateDistance()">
-                                          <input type="text" id="dropLocation" placeholder="कठे जायचे आहे? (उदा. Ajmer)" onblur="fetchAccurateDistance()">
-                                          </div>
-                                          <!-- Local Package Location Input -->
-                                          <div id="localRouteInput" class="hidden">
-                                            <input type="text" id="localCity" placeholder="लोकल शहर / क्षेत्र (उदा. Mumbai City)" onkeyup="updateRouteText()">
-                                            </div>
-                                            <!-- Multi-City 4 Locations Inputs (Hidden by default) -->
-                                            <div id="multiCityInputs" class="hidden">
-                                              <span class="section-label">मल्टी-सिटी ४ लोकेशंस:</span>
-                                              <input type="text" id="loc1" placeholder="१. पहिली लोकेशन (Pickup)" onblur="fetchAccurateDistance()">
-                                                <input type="text" id="loc2" placeholder="२. दुसरी लोकेशन (Stop 1)" onblur="fetchAccurateDistance()">
-                                                  <input type="text" id="loc3" placeholder="३. तिसरी लोकेशन (Stop 2)" onblur="fetchAccurateDistance()">
-                                                    <input type="text" id="loc4" placeholder="४. चौथी लोकेशन (Final Drop)" onblur="fetchAccurateDistance()">
-                                                    </div>
-                                                    <!-- Auto-Calculated Kilometer Field -->
-                                                    <div class="auto-km-info">
-                                                      <span id="kmLabel">✨ रिअल-टाइम सटीक किलोमीटर:</span>
-                                                      <span id="loadingStatus" class="loading-text">
-                                                      </span>
-                                                    </div>
-                                                    <input type="number" id="distanceKm" placeholder="एकूण किलोमीटर" required onkeyup="calculateFare()" onchange="calculateFare()">
-                                                      <!-- Google Maps Interactive Button -->
-                                                      <a href="https://maps.google.com" target="_blank" class="map-btn" id="mapLinkButton">🗺️ Google Maps वर मार्ग पहा</a>
-                                                      <!-- Discount / Coupon Code Section -->
-                                                      <div class="discount-box">
-                                                        <span class="section-label" style="color: #74b9ff; margin-bottom: 4px;">🏷️ डिस्काउंट कूपन (विशेष ऑफर):</span>
-                                                        <input type="text" id="couponCode" placeholder="कूपन कोड टाका (उदा. UNIQUE10%)" onkeyup="calculateFare()" style="margin: 4px 0 6px 0; padding: 8px; font-size: 13px;">
-                                                          <div style="font-size: 11.5px; color: #a4b0be;">उपलब्ध ऑफर्स निवडा:</div>
-                                                          <div class="discount-tags">
-                                                            <span class="tag" onclick="applyCoupon('FIRST1000')">5% डिस्काउंट (FIRST1000)</span>
-                                                            <span class="tag" onclick="applyCoupon('UNIQUE10%')">10% लॉयल्टी (UNIQUE10%)</span>
-                                                            <span class="tag" onclick="applyCoupon('VIP15%')">15% स्पेशल (VIP15%)</span>
-                                                          </div>
-                                                        </div>
-                                                        <!-- Detailed Dynamic Fare Calculation Display -->
-                                                        <div class="fare-display" id="fareBox">
-                                                          <div>
-                                                            <span>किमी भाडे:</span> <span>₹ 0</span>
-                                                          </div>
-                                                          <div>
-                                                            <span>ड्राइवर भत्ता (Allowance):</span> <span>₹ 0</span>
-                                                          </div>
-                                                          <div>
-                                                            <span>अंदाजे टोल टॅक्स (Toll):</span> <span>₹ 0</span>
-                                                          </div>
-                                                          <div class="fare-total">
-                                                            <span>एकूण अंदाज भाडे:</span> <span>₹ 0/-</span>
-                                                          </div>
-                                                        </div>
-                                                        <button type="button" onclick="finalizeBooking()">बुकिंग कन्फर्म करा</button>
-                                                      </div>
-                                                    </form>
-                                                    <!-- Step 3: Success Message -->
-                                                    <div id="step3" class="hidden">
-                                                      <h2>Unique Tours</h2>
-                                                      <div class="success-box">
-                                                        <h4>✅ बुकिंग यशस्वीरित्या नोंदवली गेली आहे!</h4>
-                                                        <p style="color: #a4b0be; font-size: 13px; margin-top: 8px;">
-                                                          धन्यवाद! डिस्काउंट आणि संपूर्ण माहितीसह तुमची बुकिंग आमच्यापर्यंत जीमेलवर पोहोचली आहे. आम्ही लवकरच तुम्हाला कॉल करू.
-                                                        </p>
-                                                      </div>
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                                <script>
-    function submitStep1AndNext() {
-        var name = document.getElementById('userName').value.trim();
-        var phone = document.getElementById('userPhone').value.trim();
-        
-        if(name && phone && phone.length >= 10) {
-            var formElement = document.getElementById('step1Form');
-            var formData = new FormData(formElement);
+</head>
+<body>
+    <div class="card">
+        <h2>Unique Tour & Travels</h2>
+        <div class="sub">🚖 Book Your Ride Instantly</div>
+
+        <div class="form-group">
+            <label>Select Vehicle:</label>
+            <select id="carSelect" onchange="calculateFare()">
+                <option value="">-- Loading Vehicles --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Pickup Location:</label>
+            <input type="text" id="pickup" placeholder="e.g. Station / Home">
+        </div>
+
+        <div class="form-group">
+            <label>Drop Location:</label>
+            <input type="text" id="drop" placeholder="e.g. Destination">
+        </div>
+
+        <div class="form-group">
+            <label>Estimated Distance (KM):</label>
+            <input type="number" id="distance" placeholder="Enter KM" oninput="calculateFare()">
+        </div>
+
+        <div class="form-group">
+            <label>Your Name:</label>
+            <input type="text" id="custName" placeholder="Enter Full Name">
+        </div>
+
+        <div class="form-group">
+            <label>Phone Number:</label>
+            <input type="tel" id="custPhone" placeholder="10 Digit Mobile No.">
+        </div>
+
+        <div class="price-box" id="fareDisplay">Total Fare: ₹0</div>
+
+        <button class="btn" onclick="bookCab()">Confirm Booking 🚖</button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD8jphpAWpQ5PXwIy3LxxQ4xMvngpGx5xs",
+            authDomain: "uniqueridetaxi.firebaseapp.com",
+            databaseURL: "https://uniqueridetaxi-default-rtdb.firebaseio.com",
+            projectId: "uniqueridetaxi",
+            storageBucket: "uniqueridetaxi.firebasestorage.app",
+            messagingSenderId: "611563174193",
+            appId: "1:611563174193:web:4cb11a15ed57a1df761810",
+            measurementId: "G-VGBPZN6JZ5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let carRates = {};
+
+        // Load Live Cars from Firestore
+        db.collection("cars").onSnapshot(snapshot => {
+            const select = document.getElementById('carSelect');
+            select.innerHTML = '<option value="">-- Select Vehicle --</option>';
+            carRates = {};
             
-            fetch(formElement.action, {
-                method: 'POST',
-                body: formData,
-                headers: { 'Accept': 'application/json' }
-            }).catch(error => console.log('Lead sent'));
+            snapshot.forEach(doc => {
+                const car = doc.data();
+                carRates[car.name] = car.rate;
+                select.innerHTML += `<option value="${car.name}">${car.name} (₹${car.rate}/km)</option>`;
+            });
+        });
 
-            document.getElementById('confirmedName').value = name;
-            document.getElementById('confirmedPhone').value = phone;
-
-            document.getElementById('step1Form').classList.add('hidden');
-            document.getElementById('step2And3Container').classList.remove('hidden');
-        } else {
-            alert('कृपया तुमचे वैध नाव आणि १० अंकी मोबाईल नंबर प्रविष्ट करा.');
-        }
-    }
-
-    function applyCoupon(code) {
-        document.getElementById('couponCode').value = code;
-        calculateFare();
-    }
-
-    function handleTripTypeChange() {
-        var tripType = document.getElementById('tripType').value;
-        
-        if(tripType === 'Multi-City') {
-            document.getElementById('standardRouteInputs').classList.add('hidden');
-            document.getElementById('localRouteInput').classList.add('hidden');
-            document.getElementById('multiCityInputs').classList.remove('hidden');
-            document.getElementById('distanceKm').readOnly = false;
-            fetchAccurateDistance();
-        } else if(tripType === 'Local') {
-            document.getElementById('standardRouteInputs').classList.add('hidden');
-            document.getElementById('multiCityInputs').classList.add('hidden');
-            document.getElementById('localRouteInput').classList.remove('hidden');
-            document.getElementById('kmLabel').innerText = "📦 लोकल फिक्स पॅकेज लिमिट:";
-            document.getElementById('distanceKm').value = 80; 
-            document.getElementById('distanceKm').readOnly = true; 
-            document.getElementById('loadingStatus').innerText = "8 तास / 80 किमी";
-            document.getElementById('mapLinkButton').href = "https://maps.google.com";
-            updateRouteText();
-            calculateFare();
-        } else {
-            document.getElementById('standardRouteInputs').classList.remove('hidden');
-            document.getElementById('multiCityInputs').classList.add('hidden');
-            document.getElementById('localRouteInput').classList.add('hidden');
-            document.getElementById('kmLabel').innerText = "✨ रिअल-टाइम सटीक किलोमीटर:";
-            document.getElementById('distanceKm').readOnly = false;
-            fetchAccurateDistance();
-        }
-    }
-
-    async function getLatLon(cityName) {
-        if (!cityName || cityName.trim().length < 2) return null;
-        try {
-            let response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}`);
-            let data = await response.json();
-            if (data && data.length > 0) {
-                return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
-            }
-        } catch (e) {
-            console.log("Geocode error");
-        }
-        return null;
-    }
-
-    async function fetchAccurateDistance() {
-        var tripType = document.getElementById('tripType').value;
-        if(tripType === 'Local') return;
-
-        var routeStr = "";
-        let coords = [];
-
-        document.getElementById('loadingStatus').innerText = "अन्तर मोजत आहे...";
-
-        if(tripType === 'Multi-City') {
-            let l1 = document.getElementById('loc1').value.trim();
-            let l2 = document.getElementById('loc2').value.trim();
-            let l3 = document.getElementById('loc3').value.trim();
-            let l4 = document.getElementById('loc4').value.trim();
-            routeStr = `[Multi-City] 1: ${l1} | 2: ${l2} | 3: ${l3} | 4: ${l4}`;
-
-            let locations = [l1, l2, l3, l4].filter(x => x.length > 0);
-            for (let loc of locations) {
-                let pt = await getLatLon(loc);
-                if (pt) coords.push(`${pt.lon},${pt.lat}`);
-            }
-
-            if(l1 && l4) {
-                document.getElementById('mapLinkButton').href = `https://www.google.com/maps/dir/${encodeURIComponent(l1)}/${encodeURIComponent(l2)}/${encodeURIComponent(l3)}/${encodeURIComponent(l4)}`;
-            }
-        } else {
-            let p = document.getElementById('pickupLocation').value.trim();
-            let d = document.getElementById('dropLocation').value.trim();
-            routeStr = `Pickup: ${p} | Drop: ${d}`;
-
-            let pPt = await getLatLon(p);
-            let dPt = await getLatLon(d);
-
-            if (pPt && dPt) {
-                coords.push(`${pPt.lon},${pPt.lat}`);
-                coords.push(`${dPt.lon},${dPt.lat}`);
-            }
-
-            if(p && d) {
-                document.getElementById('mapLinkButton').href = `https://www.google.com/maps/dir/${encodeURIComponent(p)}/${encodeURIComponent(d)}`;
+        function calculateFare() {
+            const car = document.getElementById('carSelect').value;
+            const distance = parseFloat(document.getElementById('distance').value) || 0;
+            if (car && carRates[car] && distance > 0) {
+                const total = distance * carRates[car];
+                document.getElementById('fareDisplay').innerText = `Total Fare: ₹${total}`;
+            } else {
+                document.getElementById('fareDisplay').innerText = `Total Fare: ₹0`;
             }
         }
 
-        document.getElementById('hiddenRoute').value = routeStr;
+        function bookCab() {
+            const name = document.getElementById('custName').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            const car = document.getElementById('carSelect').value;
+            const pickup = document.getElementById('pickup').value.trim();
+            const drop = document.getElementById('drop').value.trim();
+            const fare = document.getElementById('fareDisplay').innerText;
 
-        if (coords.length >= 2 && !document.getElementById('distanceKm').dataset.userEdited) {
-            try {
-                let coordString = coords.join(';');
-                let osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordString}?overview=false`);
-                let osrmData = await osrmRes.json();
-                if (osrmData.code === "Ok" && osrmData.routes && osrmData.routes.length > 0) {
-                    let distanceMeters = osrmData.routes[0].distance;
-                    let distanceKm = Math.round(distanceMeters / 1000);
-                    document.getElementById('distanceKm').value = distanceKm;
-                    document.getElementById('loadingStatus').innerText = "✅ अचूक अंतर मिळाले";
-                } else {
-                    document.getElementById('loadingStatus').innerText = "⚠️ अंदाजे अंतर वापरले";
-                }
-            } catch (err) {
-                document.getElementById('loadingStatus').innerText = "";
+            if (!name || !phone || !car || !pickup || !drop) {
+                alert("Please fill all details!");
+                return;
             }
-        } else {
-            document.getElementById('loadingStatus').innerText = "";
+
+            db.collection("bookings").add({
+                name, phone, car, pickup, drop, total: fare, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                alert("✅ Booking Request Sent Successfully!");
+                document.getElementById('custName').value = '';
+                document.getElementById('custPhone').value = '';
+            });
         }
-        calculateFare();
-    }
-
-    function updateRouteText() {
-        var tripType = document.getElementById('tripType').value;
-        if(tripType === 'Local') {
-            let city = document.getElementById('localCity').value.trim();
-            document.getElementById('hiddenRoute').value = `[Local Package - 8 Hrs / 80 KM] Area: ${city}`;
-        }
-    }
-
-    document.getElementById('distanceKm').addEventListener('input', function() {
-        this.dataset.userEdited = "true";
-    });
-
-    function calculateFare() {
-        var trip = document.getElementById('tripType').value;
-        var vehicle = document.getElementById('vehicleType').value;
-        var km = parseFloat(document.getElementById('distanceKm').value) || 0;
-        var coupon = document.getElementById('couponCode').value.trim().toUpperCase();
-        
-        document.getElementById('hiddenTripType').value = trip;
-        document.getElementById('hiddenVehicle').value = vehicle;
-        document.getElementById('hiddenDistance').value = km + " KM";
-
-        let ratePerKm = 12; // Hatchback
-        if(vehicle === 'Sedan') ratePerKm = 15;
-        if(vehicle === 'SUV') ratePerKm = 22;
-
-        let baseDistanceFare = km * ratePerKm;
-        let driverAllowance = 0;
-        let estimatedToll = 0;
-
-        if(trip === 'One-Way') {
-            baseDistanceFare = baseDistanceFare * 1.5; 
-            driverAllowance = Math.max(350, Math.floor(km / 200) * 350 + 350);
-            if (km > 40) estimatedToll = Math.round(km * 1.6);
-        } else if(trip === 'Round-Trip') {
-            baseDistanceFare = baseDistanceFare * 1.6; 
-            driverAllowance = Math.max(300, Math.floor(km / 250) * 300) * 1.5;
-            if (km > 50) estimatedToll = Math.round(km * 1.8);
-        } else if(trip === 'Local') {
-            km = 80; 
-            baseDistanceFare = 80 * ratePerKm; 
-            driverAllowance = 300; 
-            estimatedToll = 100; 
-            document.getElementById('hiddenDistance').value = "80 KM (8 Hours Package)";
-        } else if(trip === 'Multi-City') {
-            baseDistanceFare = baseDistanceFare * 1.8;
-            driverAllowance = 500;
-            estimatedToll = Math.round(km * 1.5);
-        }
-
-        let subTotal = baseDistanceFare + driverAllowance + estimatedToll;
-
-        // Discount Calculation Logic (5%, 10%, 15%)
-        let discountAmount = 0;
-        let discountTextDesc = "कोणताही डिस्काउंट नाही";
-
-        if(coupon === 'FIRST1000') {
-            discountAmount = subTotal * 0.05; // 5% discount
-            discountTextDesc = "5% डिस्काउंट (FIRST1000)";
-        } else if(coupon === 'UNIQUE10%') {
-            discountAmount = subTotal * 0.10; // 10% discount
-            discountTextDesc = "10% लॉयल्टी डिस्काउंट (UNIQUE10%)";
-        } else if(coupon === 'VIP15%') {
-            discountAmount = subTotal * 0.15; // 15% discount
-            discountTextDesc = "15% स्पेशल डिस्काउंट (VIP15%)";
-        }
-
-        let totalFare = subTotal - discountAmount;
-
-        if(totalFare > 0 && totalFare < 800) {
-            totalFare = 800; 
-        }
-
-        let roundedTotal = Math.round(totalFare);
-        var fareText = roundedTotal > 0 ? "₹ " + roundedTotal + "/-" : "₹ 0/-";
-
-        // Update UI breakdown display with discount details
-        let discountHtmlRow = discountAmount > 0 ? `<div><span style="color: #55efc4;">कूपन डिस्काउंट (${coupon}):</span> <span style="color: #55efc4;">- ₹ ${Math.round(discountAmount)}</span></div>` : '';
-
-        document.getElementById('fareBox').innerHTML = `
-            <div><span>किमी भाडे:</span> <span>₹ ${Math.round(baseDistanceFare)}</span></div>
-            <div><span>ड्राइवर भत्ता:</span> <span>₹ ${Math.round(driverAllowance)}</span></div>
-            <div><span>अंदाजे टोल:</span> <span>₹ ${Math.round(estimatedToll)}</span></div>
-            ${discountHtmlRow}
-            <div class="fare-total"><span>एकूण अंदाज भाडे:</span> <span>${fareText}</span></div>
-        `;
-
-        document.getElementById('hiddenFare').value = `Base: ₹${Math.round(baseDistanceFare)}, Driver: ₹${Math.round(driverAllowance)}, Toll: ₹${Math.round(estimatedToll)}, Discount: ${discountTextDesc} (-₹${Math.round(discountAmount)}), Total: ${fareText}`;
-        document.getElementById('hiddenDiscountInfo').value = discountTextDesc;
-    }
-
-    function finalizeBooking() {
-        var tripType = document.getElementById('tripType').value;
-        var km = document.getElementById('distanceKm').value.trim();
-        let isValid = false;
-
-        if(!km || km <= 0) {
-            alert('कृपया योग्य माहिती प्रविष्ट करा.');
-            return;
-        }
-
-        if(tripType === 'Local') {
-            let city = document.getElementById('localCity').value.trim();
-            if(city) isValid = true;
-        } else if(tripType === 'Multi-City') {
-            let l1 = document.getElementById('loc1').value.trim();
-            let l4 = document.getElementById('loc4').value.trim();
-            if(l1 && l4) isValid = true;
-        } else {
-            let p = document.getElementById('pickupLocation').value.trim();
-            let d = document.getElementById('dropLocation').value.trim();
-            if(p && d) isValid = true;
-        }
-
-        if(!isValid) {
-            alert('कृपया प्रवासाच्या सर्व आवश्यक लोकेशंस भरा.');
-            return;
-        }
-
-        var finalForm = document.getElementById('finalBookingForm');
-        var finalData = new FormData(finalForm);
-        
-        fetch(finalForm.action, {
-            method: 'POST',
-            body: finalData,
-            headers: { 'Accept': 'application/json' }
-        }).catch(error => console.log('Final sent'));
-
-        document.getElementById('step2').classList.add('hidden');
-        document.getElementById('step3').classList.remove('hidden');
-    }
-</script>
-                                              </body>
-                                            </html>
+    </script>
+</body>
+</html>
