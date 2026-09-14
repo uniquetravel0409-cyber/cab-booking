@@ -1,152 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unique Tour & Travels - Full Admin Control</title>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #121824; color: #fff; margin: 0; padding: 15px; }
-        .card { max-width: 650px; margin: 0 auto 20px auto; background: #1e2738; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h2 { text-align: center; color: #4ba3e3; margin-bottom: 5px; }
-        .sub { text-align: center; font-size: 13px; color: #aaa; margin-bottom: 20px; }
-        .form-group { margin-bottom: 12px; }
-        label { font-size: 13px; font-weight: bold; color: #ffb400; display: block; margin-bottom: 4px; }
-        input, select, textarea { width: 100%; padding: 10px; background: #0f141d; border: 1px solid #2d384e; border-radius: 6px; box-sizing: border-box; font-size: 14px; color: #fff; }
-        .btn { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-danger { background: #dc3545; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; border: none; color: white; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
-        th, td { padding: 10px; border-bottom: 1px solid #2d384e; text-align: left; }
-        th { color: #4ba3e3; }
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b0e14; display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .login-box { background: #1e2738; padding: 30px; border-radius: 12px; text-align: center; width: 90%; max-width: 320px; }
-    </style>
-</head>
-<body>
-
-    <!-- 🔒 Admin Login -->
-    <div id="loginOverlay">
-        <div class="login-box">
-            <h2>🔒 Admin Login</h2>
-            <p style="color:#aaa; font-size:12px;">Unique Tour & Travels</p>
-            <input type="password" id="adminPassword" placeholder="Enter Password" style="text-align:center;">
-            <button class="btn" onclick="checkPassword()">Login</button>
-            <p id="loginError" style="color:#dc3545; display:none; font-size:12px; margin-top:10px;">Incorrect Password!</p>
-        </div>
-    </div>
-
-    <!-- 🛠️ Main Control Panel -->
-    <div id="adminPanel" style="display:none;">
-        
-        <!-- Live Customer Bookings -->
-        <div class="card" style="border: 1px solid #22c55e;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="color:#22c55e; font-size:18px; margin:0;">🚨 Live Bookings & Alerts</h3>
-                <button onclick="requestNotificationPermission()" style="background:#0ea5e9; border:none; color:#fff; padding:8px 12px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">🔔 नोटिफिकेशन चालू करें</button>
-            </div>
-            <div class="sub" style="text-align: left; margin-bottom: 10px;">नई बुकिंग आते ही घंटी बजेगी और अलर्ट मिलेगा।</div>
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Customer</th>
-                            <th>Car / Route</th>
-                            <th>Trip Date & Time</th>
-                            <th>Fare</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bookingsTable">
-                        <tr><td colspan="5" style="text-align:center; color:#aaa;">लोड हो रहा है...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 1. Edit Vehicle Rates & Charges -->
-        <div class="card">
-            <h2>Unique Tour & Travels</h2>
-            <div class="sub">🛠️ Master App & Rate Manager</div>
-
-            <h3 style="color:#28a745; font-size:16px;">🚖 Add / Edit Vehicle Rates</h3>
-            
-            <div class="form-group">
-                <label>Car Name / Type:</label>
-                <input type="text" id="carName" placeholder="e.g. Ertiga / Swift Dzire">
-            </div>
-
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Rate per KM (₹):</label>
-                    <input type="number" id="carRate" placeholder="e.g. 13">
-                </div>
-                <div class="form-group">
-                    <label>Minimum KM:</label>
-                    <input type="number" id="minKm" placeholder="e.g. 300">
-                </div>
-            </div>
-
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Driver Bhatta / Day (₹):</label>
-                    <input type="number" id="driverBhatta" placeholder="e.g. 300">
-                </div>
-                <div class="form-group">
-                    <label>Extra Hour Rate (₹/hr):</label>
-                    <input type="number" id="extraHour" placeholder="e.g. 100">
-                </div>
-            </div>
-
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Seating Capacity:</label>
-                    <input type="text" id="carSeats" placeholder="e.g. 6 + 1 Seater">
-                </div>
-                <div class="form-group">
-                    <label>Discount (%):</label>
-                    <input type="number" id="carDiscount" placeholder="e.g. 5">
-                </div>
-            </div>
-
-            <button class="btn" onclick="saveCarDetails()">💾 Save / Update Vehicle Rates</button>
-
-            <!-- Vehicle List Table -->
-            <table>
-                <thead>
-                    <tr>
-                        <th>Car</th>
-                        <th>Rate/KM</th>
-                        <th>Bhatta</th>
-                        <th>Extra Hr</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="carsTable"></tbody>
-            </table>
-        </div>
-
-        <!-- 2. Manage Dynamic User App Pages & Notices -->
-        <div class="card">
-            <h3 style="color:#ffb400; font-size:16px;">📄 App Content & Pages Update</h3>
-            
-            <div class="form-group">
-                <label>Top Notice / Announcement Banner:</label>
-                <input type="text" id="appNotice" placeholder="e.g. Special 10% Discount on Pune Route!">
-            </div>
-
-            <div class="form-group">
-                <label>Custom Info Page Content (About Us / Terms):</label>
-                <textarea id="pageContent" rows="3" placeholder="Enter terms, conditions, or journey notes for users..."></textarea>
-            </div>
-
-            <button class="btn" style="background:#007bff;" onclick="updateAppContent()">📢 Update User App Content</button>
-        </div>
-
-    </div>
-
     <script>
         const CORRECT_PASSWORD = "YASMEEN";
         let isInitialLoad = true;
@@ -164,7 +15,7 @@
         // Direct Notification Permission Request
         function requestNotificationPermission() {
             if (typeof Notification === 'undefined') {
-                alert("✅ नोटिफिकेशन सिस्टम एक्टिव है। कृपया अपने फोन के मुख्य Google Chrome ब्राउज़र में इस लिंक को खोलें यदि यहाँ पॉप-अप न आए।");
+                alert("✅ नोटिफिकेशन सिस्टम एक्टिव है।");
                 return;
             }
 
@@ -173,26 +24,41 @@
                     alert("✅ नोटिफिकेशन सफलतापूर्वक चालू हो गए हैं!");
                     new Notification("Unique Tour & Travels", { body: "अब आपको नई बुकिंग के अलर्ट मिलते रहेंगे।" });
                 } else {
-                    alert("⚠️ आपने नोटिफिकेशन की अनुमति ब्लॉक कर दी है। कृपया ब्राउज़र सेटिंग्स से Allow करें।");
+                    alert("⚠️ आपने नोटिफिकेशन की अनुमति ब्लॉक कर दी है।");
                 }
-            }).catch(err => {
-                alert("✅ नोटिफिकेशन परमिशन का अनुरोध भेजा गया है।");
             });
         }
 
-        // Beep Sound Function
-        function playBeepSound() {
+        // 🚨 Long Alarm Sound Function (Bajega 10-15 seconds tak)
+        function playAlarmSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
-                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.5);
+                let count = 0;
+                
+                // Har 0.6 second mein ek beep bajegi, total 15 bar (lagbhag 10-12 seconds)
+                const alarmInterval = setInterval(() => {
+                    if (count >= 15) {
+                        clearInterval(alarmInterval);
+                        return;
+                    }
+                    
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    
+                    oscillator.type = 'sawtooth'; // Alarm jaisi tez awaaz ke liye
+                    oscillator.frequency.setValueAtTime(900, audioCtx.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.3);
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.4);
+                    
+                    count++;
+                }, 600); // Har beep ke beech ka gap
             } catch(e) {}
         }
 
@@ -201,7 +67,7 @@
                 apiKey: "AIzaSyD8jphpAWpQ5PXwIy3LxxQ4xMvngpGx5xs",
                 authDomain: "uniqueridetaxi.firebaseapp.com",
                 databaseURL: "https://uniqueridetaxi-default-rtdb.firebaseio.com",
-                projectId: "uniqueridetaxi",
+                projectId: "uniquetaxi",
                 storageBucket: "uniqueridetaxi.firebasestorage.app",
                 messagingSenderId: "611563174193",
                 appId: "1:611563174193:web:4cb11a15ed57a1df761810"
@@ -228,7 +94,7 @@
                 });
             });
 
-            // Realtime Bookings List with Alert Sound & Popup
+            // Realtime Bookings List with Long Alarm & Popup
             db.collection("bookings").orderBy("timestamp", "desc").onSnapshot(snapshot => {
                 const tbody = document.getElementById('bookingsTable');
                 
@@ -242,7 +108,7 @@
                     snapshot.docChanges().forEach(change => {
                         if (change.type === "added") {
                             const b = change.doc.data();
-                            playBeepSound(); // Play sound
+                            playAlarmSound(); // Play long alarm
                             
                             if (typeof Notification !== 'undefined' && Notification.permission === "granted") {
                                 new Notification("🚖 नई कैब बुकिंग आई है!", {
@@ -323,5 +189,3 @@
             }
         }
     </script>
-</body>
-</html>
