@@ -11,18 +11,24 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 15px; color: #333; }
         .card { max-width: 500px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #007bff; margin-bottom: 5px; }
-        .sub { text-align: center; font-size: 13px; color: #666; margin-bottom: 20px; }
+        .sub { text-align: center; font-size: 13px; color: #666; margin-bottom: 15px; }
+        .notice-banner { background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px; border: 1px solid #ffeeba; display: none; }
         .form-group { margin-bottom: 12px; }
         label { font-size: 13px; font-weight: bold; color: #444; display: block; margin-bottom: 4px; }
         input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .btn { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .price-box { background: #e9ecef; padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; color: #28a745; font-size: 18px; }
+        .terms-box { background: #f8f9fa; border: 1px solid #ddd; padding: 10px; border-radius: 6px; font-size: 12px; color: #555; margin-top: 15px; display: none; }
     </style>
 </head>
 <body>
     <div class="card">
         <h2>Unique Tour & Travels</h2>
         <div class="sub">🚖 Book Your Ride Instantly</div>
+
+        <!-- Dynamic Notice Banner -->
+        <div id="noticeBanner" class="notice-banner"></div>
 
         <div class="form-group">
             <label>Select Vehicle:</label>
@@ -31,34 +37,45 @@
             </select>
         </div>
 
-        <div class="form-group">
-            <label>Pickup Location:</label>
-            <input type="text" id="pickup" placeholder="e.g. Station / Home">
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Pickup Location:</label>
+                <input type="text" id="pickup" placeholder="Pickup point">
+            </div>
+            <div class="form-group">
+                <label>Drop Location:</label>
+                <input type="text" id="drop" placeholder="Drop point">
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>Drop Location:</label>
-            <input type="text" id="drop" placeholder="e.g. Destination">
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Distance (KM):</label>
+                <input type="number" id="distance" placeholder="Enter Total KM" oninput="calculateFare()">
+            </div>
+            <div class="form-group">
+                <label>Extra Hours (if any):</label>
+                <input type="number" id="extraHours" placeholder="e.g. 2" oninput="calculateFare()">
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>Estimated Distance (KM):</label>
-            <input type="number" id="distance" placeholder="Enter KM" oninput="calculateFare()">
-        </div>
-
-        <div class="form-group">
-            <label>Your Name:</label>
-            <input type="text" id="custName" placeholder="Enter Full Name">
-        </div>
-
-        <div class="form-group">
-            <label>Phone Number:</label>
-            <input type="tel" id="custPhone" placeholder="10 Digit Mobile No.">
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Your Name:</label>
+                <input type="text" id="custName" placeholder="Full Name">
+            </div>
+            <div class="form-group">
+                <label>Phone Number:</label>
+                <input type="tel" id="custPhone" placeholder="Mobile No.">
+            </div>
         </div>
 
         <div class="price-box" id="fareDisplay">Total Fare: ₹0</div>
 
         <button class="btn" onclick="bookCab()">Confirm Booking 🚖</button>
+
+        <!-- Dynamic Terms & Notes -->
+        <div id="termsBox" class="terms-box"></div>
     </div>
 
     <script>
@@ -69,33 +86,65 @@
             projectId: "uniqueridetaxi",
             storageBucket: "uniqueridetaxi.firebasestorage.app",
             messagingSenderId: "611563174193",
-            appId: "1:611563174193:web:4cb11a15ed57a1df761810",
-            measurementId: "G-VGBPZN6JZ5"
+            appId: "1:611563174193:web:4cb11a15ed57a1df761810"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let carRates = {};
+        let carsData = {};
 
-        // Load Live Cars from Firestore
+        // 1. Sync Live Vehicles & Rates
         db.collection("cars").onSnapshot(snapshot => {
             const select = document.getElementById('carSelect');
             select.innerHTML = '<option value="">-- Select Vehicle --</option>';
-            carRates = {};
+            carsData = {};
             
             snapshot.forEach(doc => {
                 const car = doc.data();
-                carRates[car.name] = car.rate;
+                carsData[car.name] = car;
                 select.innerHTML += `<option value="${car.name}">${car.name} (₹${car.rate}/km)</option>`;
             });
         });
 
+        // 2. Sync Live Notice & Terms from Admin
+        db.collection("settings").doc("appConfig").onSnapshot(doc => {
+            if (doc.exists) {
+                const config = doc.data();
+                if (config.notice) {
+                    document.getElementById('noticeBanner').innerText = "📢 " + config.notice;
+                    document.getElementById('noticeBanner').style.display = 'block';
+                }
+                if (config.terms) {
+                    document.getElementById('termsBox').innerText = "📝 Important Info:\n" + config.terms;
+                    document.getElementById('termsBox').style.display = 'block';
+                }
+            }
+        });
+
+        // 3. Smart Fare Calculation (KM + Bhatta + Extra Hours - Discount)
         function calculateFare() {
-            const car = document.getElementById('carSelect').value;
-            const distance = parseFloat(document.getElementById('distance').value) || 0;
-            if (car && carRates[car] && distance > 0) {
-                const total = distance * carRates[car];
-                document.getElementById('fareDisplay').innerText = `Total Fare: ₹${total}`;
+            const carName = document.getElementById('carSelect').value;
+            const inputKm = parseFloat(document.getElementById('distance').value) || 0;
+            const hours = parseFloat(document.getElementById('extraHours').value) || 0;
+
+            if (carName && carsData[carName] && inputKm > 0) {
+                const car = carsData[carName];
+                
+                // Minimum KM Check
+                const appliedKm = (car.minKm && inputKm < car.minKm) ? car.minKm : inputKm;
+                
+                let baseFare = appliedKm * car.rate;
+                let bhatta = car.bhatta || 0;
+                let extraHourFare = hours * (car.extraHour || 0);
+
+                let total = baseFare + bhatta + extraHourFare;
+
+                // Discount calculation
+                if (car.discount && car.discount > 0) {
+                    total = total - (total * (car.discount / 100));
+                }
+
+                document.getElementById('fareDisplay').innerText = `Total Fare: ₹${Math.round(total)}`;
             } else {
                 document.getElementById('fareDisplay').innerText = `Total Fare: ₹0`;
             }
