@@ -3,78 +3,477 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unique Tour & Travels - Online Cab Booking</title>
+    <title>Unique Tour & Travels - Premium Cab Booking</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 15px; color: #333; }
-        .card { max-width: 500px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #007bff; margin-bottom: 5px; }
-        .sub { text-align: center; font-size: 13px; color: #666; margin-bottom: 15px; }
-        .notice-banner { background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px; border: 1px solid #ffeeba; display: none; }
-        .form-group { margin-bottom: 12px; }
-        label { font-size: 13px; font-weight: bold; color: #444; display: block; margin-bottom: 4px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .price-box { background: #e9ecef; padding: 12px; border-radius: 6px; margin-top: 15px; text-align: center; font-weight: bold; color: #28a745; font-size: 18px; }
-        .terms-box { background: #f8f9fa; border: 1px solid #ddd; padding: 10px; border-radius: 6px; font-size: 12px; color: #555; margin-top: 15px; display: none; }
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --input-bg: #0f172a;
+            --border-color: #334155;
+            --primary-color: #38bdf8;
+            --primary-gradient: linear-gradient(135deg, #0ea5e9, #2563eb);
+            --success-color: #22c55e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg-color); 
+            margin: 0; 
+            padding: 20px; 
+            color: var(--text-main); 
+        }
+
+        .card { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: var(--card-bg); 
+            padding: 28px; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5); 
+            position: relative; 
+            border: 1px solid var(--border-color);
+        }
+
+        .header-top { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            border-bottom: 1px solid var(--border-color); 
+            padding-bottom: 14px; 
+        }
+
+        .lang-select { 
+            padding: 8px 14px; 
+            border-radius: 8px; 
+            border: 1px solid var(--primary-color); 
+            background: var(--input-bg); 
+            color: var(--primary-color); 
+            font-weight: 600; 
+            font-size: 13px; 
+            cursor: pointer; 
+            outline: none;
+            transition: all 0.2s;
+        }
+        .lang-select:hover { background: #1e293b; }
+
+        h2 { 
+            text-align: center; 
+            color: var(--primary-color); 
+            margin: 5px 0 4px 0; 
+            letter-spacing: -0.5px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .sub { 
+            text-align: center; 
+            font-size: 13px; 
+            color: var(--text-muted); 
+            margin-bottom: 24px; 
+            font-weight: 500;
+        }
+
+        .notice-banner { 
+            background: rgba(234, 179, 8, 0.1); 
+            color: #facc15; 
+            padding: 12px 16px; 
+            border-radius: 10px; 
+            font-size: 13px; 
+            text-align: center; 
+            margin-bottom: 20px; 
+            border: 1px solid rgba(234, 179, 8, 0.3); 
+            display: none; 
+            font-weight: 500;
+        }
+
+        .form-group { 
+            margin-bottom: 18px; 
+            position: relative; 
+        }
+
+        .label-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        label { 
+            font-size: 13px; 
+            font-weight: 600; 
+            color: var(--text-main); 
+        }
+
+        .gps-btn {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: var(--primary-color);
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .gps-btn:hover {
+            background: var(--primary-color);
+            color: #0f172a;
+        }
+
+        input, select { 
+            width: 100%; 
+            padding: 13px 16px; 
+            background: var(--input-bg); 
+            border: 1px solid var(--border-color); 
+            border-radius: 10px; 
+            box-sizing: border-box; 
+            font-size: 14px; 
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: all 0.25s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+        }
+
+        input[readonly] { 
+            background-color: #162032; 
+            color: var(--text-muted); 
+            border-color: var(--border-color); 
+            font-weight: 600; 
+        }
+
+        /* Calendar and Time picker color adjustment for dark theme */
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .grid-2 { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 16px; 
+        }
+
+        .btn { 
+            width: 100%; 
+            background: var(--primary-gradient); 
+            color: #ffffff; 
+            padding: 15px; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            margin-top: 14px; 
+            transition: transform 0.2s, opacity 0.2s;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            letter-spacing: 0.3px;
+        }
+        .btn:hover { opacity: 0.95; transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+
+        .dist-status { 
+            font-size: 13px; 
+            color: var(--primary-color); 
+            margin-bottom: 16px; 
+            font-weight: 600; 
+            min-height: 18px; 
+            text-align: center;
+            background: rgba(56, 189, 248, 0.08);
+            padding: 8px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .toll-info-tag { 
+            font-size: 11px; 
+            color: var(--success-color); 
+            font-weight: 600; 
+            margin-top: 5px; 
+        }
+        
+        .toll-note {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            line-height: 1.4;
+            font-style: italic;
+        }
+
+        .suggestions-box { 
+            position: absolute; 
+            top: 100%; 
+            left: 0; 
+            right: 0; 
+            background: var(--card-bg); 
+            border: 1px solid var(--primary-color); 
+            border-radius: 10px; 
+            max-height: 220px; 
+            overflow-y: auto; 
+            z-index: 9999; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6); 
+            display: none; 
+            margin-top: 4px;
+        }
+
+        .suggestion-item { 
+            padding: 12px 16px; 
+            font-size: 13px; 
+            cursor: pointer; 
+            border-bottom: 1px solid var(--border-color); 
+            color: var(--text-main); 
+            background: var(--card-bg); 
+            transition: background 0.2s;
+        }
+        .suggestion-item:hover { background-color: rgba(56, 189, 248, 0.15); color: var(--primary-color); font-weight: 600; }
+
+        .breakdown-box { 
+            background: #131c31; 
+            border: 1px solid #334155; 
+            padding: 20px; 
+            border-radius: 14px; 
+            margin-top: 22px; 
+            display: none; 
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .breakdown-title { 
+            font-size: 15px; 
+            font-weight: 700; 
+            color: var(--primary-color); 
+            border-bottom: 1px solid var(--border-color); 
+            padding-bottom: 10px; 
+            margin-bottom: 14px; 
+            text-align: center;
+            letter-spacing: 0.3px;
+        }
+
+        .breakdown-section-sub {
+            font-size: 12px;
+            color: var(--primary-color);
+            background: rgba(56, 189, 248, 0.08);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .breakdown-row { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 13px; 
+            margin-bottom: 10px; 
+            color: var(--text-muted); 
+        }
+
+        .breakdown-row span:last-child {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .breakdown-row.total { 
+            font-size: 16px; 
+            font-weight: 700; 
+            color: var(--success-color); 
+            border-top: 1px solid var(--border-color); 
+            padding-top: 12px; 
+            margin-top: 12px; 
+        }
+        .breakdown-row.total span:last-child {
+            color: var(--success-color);
+        }
+
+        .terms-box { 
+            background: #111827; 
+            border: 1px solid #1f2937; 
+            padding: 14px; 
+            border-radius: 10px; 
+            font-size: 12px; 
+            color: #93c5fd; 
+            margin-top: 18px; 
+            display: none; 
+            line-height: 1.5; 
+        }
+        .rtl { direction: rtl; text-align: right; }
+
+        @media (max-width: 480px) {
+            .grid-2 { grid-template-columns: 1fr; gap: 0; }
+            body { padding: 10px; }
+            .card { padding: 18px; }
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>Unique Tour & Travels</h2>
-        <div class="sub">🚖 Book Your Ride Instantly</div>
-
-        <!-- Dynamic Notice Banner -->
-        <div id="noticeBanner" class="notice-banner"></div>
-
-        <div class="form-group">
-            <label>Select Vehicle:</label>
-            <select id="carSelect" onchange="calculateFare()">
-                <option value="">-- Loading Vehicles --</option>
+    <div class="card" id="appCard">
+        <div class="header-top">
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">🌐 Language / भाषा</span>
+            <select id="langSelect" class="lang-select" onchange="changeLanguage()">
+                <option value="en">English</option>
+                <option value="hi" selected>हिंदी (Hindi)</option>
+                <option value="mr">मराठी (Marathi)</option>
+                <option value="ur">اردو (Urdu)</option>
             </select>
         </div>
 
+        <h2>Unique Tour & Travels</h2>
+        <div class="sub" id="lblSub">🚖 ऑनलाइन कैब बुकिंग और पूर्ण पारदर्शी किराया कैलकुलेटर</div>
+
+        <div id="noticeBanner" class="notice-banner"></div>
+
         <div class="grid-2">
             <div class="form-group">
-                <label>Pickup Location:</label>
-                <input type="text" id="pickup" placeholder="Pickup point">
+                <label id="lblVehicle">🚗 गाड़ी का प्रकार:</label>
+                <select id="carSelect" onchange="calculateFare()">
+                    <option value="">-- गाड़ी चुनें --</option>
+                </select>
             </div>
             <div class="form-group">
-                <label>Drop Location:</label>
-                <input type="text" id="drop" placeholder="Drop point">
+                <label id="lblTripType">🗺️ यात्रा का प्रकार:</label>
+                <select id="tripTypeSelect" onchange="onTripTypeChange()">
+                    <option value="oneway">One-Way (एक तरफा यात्रा)</option>
+                    <option value="roundtrip">Round Trip (आना-जाना)</option>
+                    <option value="multicity">Multi-City / Via Route (अनेक शहर)</option>
+                    <option value="airport">Airport Pickup/Drop (एयरपोर्ट ट्रांसफर)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Date and Time Selection Section -->
+        <div class="grid-2">
+            <div class="form-group">
+                <label id="lblBookingDate">📅 यात्रा की तारीख (Date):</label>
+                <input type="date" id="bookingDate">
+            </div>
+            <div class="form-group">
+                <label id="lblBookingTime">⏰ यात्रा का समय (Time):</label>
+                <input type="time" id="bookingTime">
+            </div>
+        </div>
+
+        <!-- Standard One-Way, Round Trip & Airport Layout -->
+        <div id="standardRouteContainer">
+            <div class="grid-2">
+                <div class="form-group">
+                    <div class="label-flex">
+                        <label id="lblPickup">📍 पिकअप स्थान:</label>
+                        <button type="button" class="gps-btn" id="btnGpsPickup" onclick="fetchLiveLocation('pickup')">📡 लाइव लोकेशन</button>
+                    </div>
+                    <input type="text" id="pickup" placeholder="जैसे: Virar, Andheri" autocomplete="off" oninput="handleStandardSearch('pickup')" onblur="hideSuggestions('pickup')">
+                    <div id="pickup-suggestions" class="suggestions-box"></div>
+                </div>
+                <div class="form-group">
+                    <label id="lblDrop">🏁 अंतिम ड्रॉप स्थान:</label>
+                    <input type="text" id="drop" placeholder="जैसे: Pune, Shirdi, Ahmedabad" autocomplete="off" oninput="handleStandardSearch('drop')" onblur="hideSuggestions('drop')">
+                    <div id="drop-suggestions" class="suggestions-box"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Multi-City Layout -->
+        <div id="multiCityContainer" style="display: none;">
+            <div class="grid-2">
+                <div class="form-group">
+                    <div class="label-flex">
+                        <label id="lblMultiPickup">📍 1. पिकअप (शुरुआत):</label>
+                        <button type="button" class="gps-btn" id="btnGpsMulti" onclick="fetchLiveLocation('multiPickup')">📡 लाइव लोकेशन</button>
+                    </div>
+                    <input type="text" id="multiPickup" placeholder="जैसे: Virar" autocomplete="off" oninput="handleStandardSearch('multiPickup')" onblur="hideSuggestions('multiPickup')">
+                    <div id="multiPickup-suggestions" class="suggestions-box"></div>
+                </div>
+                <div class="form-group">
+                    <label id="lblStop1">🛑 2. स्टॉप 1 (स्थान):</label>
+                    <input type="text" id="stop1" placeholder="जैसे: Pune" autocomplete="off" oninput="handleStandardSearch('stop1')" onblur="hideSuggestions('stop1')">
+                    <div id="stop1-suggestions" class="suggestions-box"></div>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label id="lblStop2">🛑 3. स्टॉप 2 (स्थान):</label>
+                    <input type="text" id="stop2" placeholder="जैसे: Solapur" autocomplete="off" oninput="handleStandardSearch('stop2')" onblur="hideSuggestions('stop2')">
+                    <div id="stop2-suggestions" class="suggestions-box"></div>
+                </div>
+                <div class="form-group">
+                    <label id="lblMultiDrop">🏁 4. अंतिम ड्रॉप:</label>
+                    <input type="text" id="multiDrop" placeholder="जैसे: Hyderabad" autocomplete="off" oninput="handleStandardSearch('multiDrop')" onblur="hideSuggestions('multiDrop')">
+                    <div id="multiDrop-suggestions" class="suggestions-box"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="distStatus" class="dist-status"></div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label id="lblDistance">📏 कुल दूरी (किमी): <span style="font-size: 11px; color: var(--primary-color); font-weight: normal;">(मैनुअल बदल सकते हैं)</span></label>
+                <input type="number" id="distance" placeholder="Auto Calculated" oninput="onManualKmChange()">
+            </div>
+            <div class="form-group">
+                <label id="lblTravelTime">⏱️ अनुमानित समय:</label>
+                <input type="text" id="travelTime" placeholder="Auto Calculated" readonly>
             </div>
         </div>
 
         <div class="grid-2">
             <div class="form-group">
-                <label>Distance (KM):</label>
-                <input type="number" id="distance" placeholder="Enter Total KM" oninput="calculateFare()">
+                <label id="lblDays">📅 यात्रा के दिन:</label>
+                <input type="number" id="numDays" value="1" min="1" placeholder="Days" oninput="calculateFare()">
             </div>
             <div class="form-group">
-                <label>Extra Hours (if any):</label>
-                <input type="number" id="extraHours" placeholder="e.g. 2" oninput="calculateFare()">
+                <label id="lblToll">🛣️ अनुमानित टोल टैक्स (₹):</label>
+                <input type="number" id="tollTax" placeholder="Auto Calculated" readonly>
+                <div id="tollPlazaTag" class="toll-info-tag"></div>
+                <div id="tollDisclaimerText" class="toll-note">*नोट: यह टोल शुल्क केवल एक अनुमान है। वास्तविक टोल राशि रास्ते और वाहन के आधार पर कम या ज़्यादा हो सकती है।</div>
             </div>
+        </div>
+
+        <div class="form-group">
+            <label id="lblHours">⏳ अतिरिक्त घंटे (यदि कोई हों):</label>
+            <input type="number" id="extraHours" placeholder="जैसे: 2" oninput="calculateFare()">
         </div>
 
         <div class="grid-2">
             <div class="form-group">
-                <label>Your Name:</label>
-                <input type="text" id="custName" placeholder="Full Name">
+                <label id="lblName">👤 आपका नाम:</label>
+                <input type="text" id="custName" placeholder="पूरा नाम दर्ज करें">
             </div>
             <div class="form-group">
-                <label>Phone Number:</label>
-                <input type="tel" id="custPhone" placeholder="Mobile No.">
+                <label id="lblPhone">📞 फोन नंबर:</label>
+                <input type="tel" id="custPhone" placeholder="मोबाइल नंबर दर्ज करें">
             </div>
         </div>
 
-        <div class="price-box" id="fareDisplay">Total Fare: ₹0</div>
+        <!-- Transparent Detailed Breakdown Box -->
+        <div id="breakdownBox" class="breakdown-box">
+            <div class="breakdown-title" id="lblBreakdownTitle">📊 पूरी यात्रा का पारदर्शी किराया विवरण (Fare Transparency)</div>
+            <div id="tripModeExplain" class="breakdown-section-sub">चयनित यात्रा प्रकार: वन-वे (One-Way Trip)</div>
+            
+            <div class="breakdown-row"><span id="lblCarSelected">चुनी गई गाड़ी:</span> <span id="carInfoText">-</span></div>
+            <div class="breakdown-row"><span id="lblCalcFormula">किराए का गणित (Formula):</span> <span id="formulaText">-</span></div>
+            <div class="breakdown-row"><span id="lblTotalKmBreak">कुल तय होने वाले किलोमीटर:</span> <span id="totalKmText">0 KM</span></div>
+            <div class="breakdown-row"><span id="lblBaseFare">दूरी का कुल किराया:</span> <span id="baseFareText">₹0</span></div>
+            <div class="breakdown-row"><span id="lblBhatta">ड्राइवर भत्ता (<span id="daysText">1</span> दिन):</span> <span id="bhattaText">₹0</span></div>
+            <div class="breakdown-row"><span id="lblTollBreak">टोल / स्टेट टैक्स:</span> <span id="tollText">₹0</span></div>
+            <div class="breakdown-row"><span id="lblHoursBreak">अतिरिक्त घंटे का शुल्क:</span> <span id="extraHoursText">₹0</span></div>
+            <div class="breakdown-row" id="discountRow" style="display: none;"><span id="lblDiscount">विशेष छूट (Discount):</span> <span id="discountText">-₹0</span></div>
+            <div class="breakdown-row total"><span id="lblTotalFare">कुल अंतिम अनुमानित किराया:</span> <span id="totalFareText">₹0</span></div>
+        </div>
 
-        <button class="btn" onclick="bookCab()">Confirm Booking 🚖</button>
+        <button class="btn" id="btnBook" onclick="bookCab()">बुकिंग कन्फर्म करें 🚖</button>
 
-        <!-- Dynamic Terms & Notes -->
         <div id="termsBox" class="terms-box"></div>
     </div>
 
@@ -92,61 +491,607 @@
         const db = firebase.firestore();
 
         let carsData = {};
+        let searchTimer = null;
+        let baseOneWayKmCache = 0; 
 
-        // 1. Sync Live Vehicles & Rates
+        // Set default date to today and time to current time on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            const nowTime = new Date().toTimeString().substring(0, 5);
+            const dateInput = document.getElementById('bookingDate');
+            const timeInput = document.getElementById('bookingTime');
+            if(dateInput && !dateInput.value) dateInput.value = today;
+            if(timeInput && !timeInput.value) timeInput.value = nowTime;
+        });
+
+        const routeDistanceTable = {
+            "virar-mumbai": 60, "mumbai-virar": 60,
+            "virar-pune": 190, "pune-virar": 190,
+            "mumbai-pune": 150, "pune-mumbai": 150,
+            "mumbai-nashik": 165, "nashik-mumbai": 165,
+            "virar-nashik": 175, "nashik-virar": 175,
+            "mumbai-shirdi": 240, "shirdi-mumbai": 240,
+            "virar-shirdi": 260, "shirdi-virar": 260,
+            "mumbai-surat": 280, "surat-mumbai": 280,
+            "virar-surat": 220, "surat-virar": 220,
+            "mumbai-ahmedabad": 525, "ahmedabad-mumbai": 525,
+            "virar-ahmedabad": 450, "ahmedabad-virar": 450,
+            "mumbai-delhi": 1400, "delhi-mumbai": 1400,
+            "virar-delhi": 1380, "delhi-virar": 1380,
+            "mumbai-goa": 590, "goa-mumbai": 590,
+            "mumbai-solapur": 400, "solapur-mumbai": 400,
+            "pune-solapur": 250, "solapur-pune": 250,
+            "solapur-hyderabad": 310, "hyderabad-solapur": 310,
+            "pune-hyderabad": 560, "hyderabad-pune": 560,
+            "mumbai-hyderabad": 710, "hyderabad-mumbai": 710,
+            "virar-hyderabad": 730, "hyderabad-virar": 730
+        };
+
+        const translations = {
+            en: {
+                sub: "🚖 Online Cab Booking & Transparent Fare Calculator",
+                vehicle: "🚗 Select Vehicle Type:",
+                tripType: "🗺️ Trip Type:",
+                bookingDate: "📅 Trip Date:",
+                bookingTime: "⏰ Trip Time:",
+                pickup: "📍 Pickup Location:",
+                drop: "🏁 Final Drop Location:",
+                multiPickup: "📍 1. Pickup (Start):",
+                stop1: "🛑 2. Stop 1 (Place):",
+                stop2: "🛑 3. Stop 2 (Next Stop):",
+                multiDrop: "🏁 4. Final Drop Location:",
+                distance: "📏 Distance (KM):",
+                travelTime: "⏱️ Est. Time (with Traffic):",
+                days: "📅 Trip Duration (Days):",
+                toll: "🛣️ Estimated Toll (₹):",
+                tollNote: "*Note: This toll fee is an estimate. Actual toll may vary.",
+                hours: "⏳ Extra Hours (if any):",
+                name: "👤 Your Name:",
+                phone: "📞 Phone Number:",
+                breakdownTitle: "📊 Complete Transparent Fare Breakdown",
+                carSelectedLabel: "Selected Car & Capacity:",
+                calcFormula: "Fare Calculation Logic:",
+                totalKmBreak: "Total Travel KM (Including Return/Route):",
+                baseFare: "Distance Fare:",
+                bhatta: "Driver Bhatta",
+                daysUnit: "Days",
+                tollBreak: "Toll / State Tax:",
+                hoursBreak: "Extra Hours Charge:",
+                discountLabel: "Special Discount:",
+                totalFare: "Total Final Estimated Fare:",
+                btnBook: "Confirm Booking 🚖",
+                chooseVehicle: "-- Choose Vehicle --",
+                alertFill: "Please fill all booking details, date, and time!",
+                alertSuccess: "✅ Booking Request Sent Successfully!",
+                distCalc: "Calculating distance...",
+                distFound: "Route Total Distance: ",
+                approxTolls: " Approx. Toll Plazas",
+                hoursUnit: "hrs",
+                minsUnit: "mins",
+                gpsFetching: "📡 Locating you...",
+                gpsError: "Unable to retrieve your location. Please check GPS permission."
+            },
+            hi: {
+                sub: "🚖 ऑनलाइन कैब बुकिंग और पूर्ण पारदर्शी किराया कैलकुलेटर",
+                vehicle: "🚗 गाड़ी का प्रकार:",
+                tripType: "🗺️ यात्रा का प्रकार:",
+                bookingDate: "📅 यात्रा की तारीख (Date):",
+                bookingTime: "⏰ यात्रा का समय (Time):",
+                pickup: "📍 पिकअप स्थान:",
+                drop: "🏁 अंतिम ड्रॉप स्थान:",
+                multiPickup: "📍 1. पिकअप (शुरुआत):",
+                stop1: "🛑 2. स्टॉप 1 (स्थान):",
+                stop2: "🛑 3. स्टॉप 2 (दूसरा पड़ाव):",
+                multiDrop: "🏁 4. अंतिम ड्रॉप स्थान:",
+                distance: "📏 कुल दूरी (किलोमीटर):",
+                travelTime: "⏱️ अनुमानित समय (ट्रैफिक सहित):",
+                days: "📅 यात्रा के दिन:",
+                toll: "🛣️ अनुमानित टोल टैक्स (₹):",
+                tollNote: "*नोट: यह टोल शुल्क केवल एक अनुमान है। वास्तविक टोल राशि रास्ते और वाहन के आधार पर बदल सकती है।",
+                hours: "⏳ अतिरिक्त घंटे (यदि कोई हों):",
+                name: "👤 आपका नाम:",
+                phone: "📞 फोन नंबर:",
+                breakdownTitle: "📊 पूरी यात्रा का पारदर्शी किराया विवरण (Fare Transparency)",
+                carSelectedLabel: "चुनी गई गाड़ी और क्षमता:",
+                calcFormula: "किराए का गणित (Formula):",
+                totalKmBreak: "कुल तय होने वाले किलोमीटर (आने-जाने सहित):",
+                baseFare: "दूरी का कुल किराया:",
+                bhatta: "ड्राइवर भत्ता",
+                daysUnit: "दिन",
+                tollBreak: "टोल / स्टेट टैक्स:",
+                hoursBreak: "अतिरिक्त घंटे का शुल्क:",
+                discountLabel: "विशेष छूट (Discount):",
+                totalFare: "कुल अंतिम अनुमानित किराया:",
+                btnBook: "बुकिंग कन्फर्म करें 🚖",
+                chooseVehicle: "-- गाड़ी चुनें --",
+                alertFill: "कृपया सभी बुकिंग विवरण, तारीख और समय भरें!",
+                alertSuccess: "✅ बुकिंग अनुरोध सफलतापूर्वक भेजा गया!",
+                distCalc: "दूरी खोजी जा रही है...",
+                distFound: "सटीक मार्ग की कुल दूरी: ",
+                approxTolls: " संभावित टोल प्लाजा",
+                hoursUnit: "घंटे",
+                minsUnit: "मिनट",
+                gpsFetching: "📡 लोकेशन खोजी जा रही है...",
+                gpsError: "लोकेशन नहीं मिल सकी। कृपया GPS अनुमति दें।"
+            },
+            mr: {
+                sub: "🚖 ऑनलाइन कॅब बुकिंग आणि पूर्ण पारदर्शक भाडे कॅल्क्युलेटर",
+                vehicle: "🚗 गाडीचा प्रकार:",
+                tripType: "🗺️ प्रवासाचा प्रकार:",
+                bookingDate: "📅 प्रवासाची तारीख:",
+                bookingTime: "⏰ प्रवासाची वेळ:",
+                pickup: "📍 पिकअप ठिकाण:",
+                drop: "🏁 शेवटचे ड्रॉप ठिकाण:",
+                multiPickup: "📍 १. पिकअप (सुरुवात):",
+                stop1: "🛑 २. स्टॉप १:",
+                stop2: "🛑 ३. स्टॉप २:",
+                multiDrop: "🏁 ४. शेवटचे ड्रॉप ठिकाण:",
+                distance: "📏 एकूण अंतर (किमी):",
+                travelTime: "⏱️ अंदाजे वेळ:",
+                days: "📅 प्रवासाचे दिवस:",
+                toll: "🛣️ अंदाजे टोल टॅक्स (₹):",
+                tollNote: "*टीप: हा टोल खर्च केवळ एक अंदाज आहे.",
+                hours: "⏳ अतिरिक्त तास:",
+                name: "👤 तुमचे नाव:",
+                phone: "📞 फोन नंबर:",
+                breakdownTitle: "📊 संपूर्ण प्रवासाचा पारदर्शक भाड्याचा तपशील",
+                carSelectedLabel: "निवडलेली गाडी आणि क्षमता:",
+                calcFormula: "भाडे मोजण्याची पद्धत:",
+                totalKmBreak: "एकूण प्रवास होणारे किलोमीटर:",
+                baseFare: "अंतराचे एकूण भाडे:",
+                bhatta: "ड्रायव्हर भत्ता",
+                daysUnit: "दिवस",
+                tollBreak: "टोल / स्टेट टॅक्स:",
+                hoursBreak: "अतिरिक्त तासांचे शुल्क:",
+                discountLabel: "विशेष सूट (Discount):",
+                totalFare: "एकूण अंतिम अंदाजे भाडे:",
+                btnBook: "बुकिंग कन्फर्म करा 🚖",
+                chooseVehicle: "-- गाडी निवडा --",
+                alertFill: "कृपया सर्व माहिती, तारीख आणि वेळ भरा!",
+                alertSuccess: "✅ बुकिंग विनंती यशस्वीरित्या पाठवली गेली!",
+                distCalc: "अंतर शोधले जात आहे...",
+                distFound: "अचूक प्रवासाचे एकूण अंतर: ",
+                approxTolls: " अंदाजे टोल प्लाझा",
+                hoursUnit: "तास",
+                minsUnit: "मिनिटे",
+                gpsFetching: "📡 लोकेशन शोधत आहे...",
+                gpsError: "लोकेशन मिळवता आली नाही."
+            },
+            ur: {
+                sub: "🚖 آن لائن کیب بکنگ اور شفاف کرایہ کیلکولیٹر",
+                vehicle: "🚗 گاڑی کی قسم:",
+                tripType: "🗺️ سفر کی قسم:",
+                bookingDate: "📅 سفر کی تاریخ:",
+                bookingTime: "⏰ سفر کا وقت:",
+                pickup: "📍 پک اپ کا مقام:",
+                drop: "🏁 آخری ڈراپ کا مقام:",
+                multiPickup: "📍 1. پک اپ (شروعات):",
+                stop1: "🛑 2. اسٹاپ 1:",
+                stop2: "🛑 3. اسٹاپ 2:",
+                multiDrop: "🏁 4. آخری ڈراپ:",
+                distance: "📏 فاصلہ (کلومیٹر):",
+                travelTime: "⏱️ تخمینہ شدہ وقت:",
+                days: "📅 سفر کے دن:",
+                toll: "🛣️ تخمینہ شدہ ٹول ٹیکس (₹):",
+                tollNote: "*نوٹ: ٹول فیس ایک تخمینہ ہے۔",
+                hours: "⏳ اضافی گھنٹے:",
+                name: "👤 آپ کا نام:",
+                phone: "📞 فون نمبر:",
+                breakdownTitle: "📊 مکمل شفاف کرایہ کی تفصیل",
+                carSelectedLabel: "منتخب کردہ گاڑی اور گنجائش:",
+                calcFormula: "کرایہ کا فارمولا:",
+                totalKmBreak: "کل طے ہونے والے کلومیٹر:",
+                baseFare: "فاصلے کا کل کرایہ:",
+                bhatta: "ڈرائیور بھتہ",
+                daysUnit: "دن",
+                tollBreak: "ٹول ٹیکس:",
+                hoursBreak: "اضافی گھنٹے:",
+                discountLabel: "خصوصی ڈسکاؤنٹ:",
+                totalFare: "کل آخری تخمینہ شدہ کرایہ:",
+                btnBook: "بکنگ کی تصدیق کریں 🚖",
+                chooseVehicle: "-- گاڑی منتخب کریں --",
+                alertFill: "براہ کرم تمام تفصیلات، تاریخ اور وقت بھریں!",
+                alertSuccess: "✅ بکنگ کامیابی سے بھیج دی گئی!",
+                distCalc: "فاصلہ نکالا جا رہا hai...",
+                distFound: "کل درست فاصلہ: ",
+                approxTolls: " متوقع ٹول پلازہ",
+                hoursUnit: "گھنٹے",
+                minsUnit: "منٹ",
+                gpsFetching: "📡 لوکیشن لی جا رہی ہے...",
+                gpsError: "لوکیشن نہیں مل سکی۔"
+            }
+        };
+
+        let currentLang = 'hi';
+
+        function changeLanguage() {
+            currentLang = document.getElementById('langSelect').value;
+            const t = translations[currentLang];
+            const card = document.getElementById('appCard');
+            if (currentLang === 'ur') card.classList.add('rtl');
+            else card.classList.remove('rtl');
+
+            document.getElementById('lblSub').innerText = t.sub;
+            document.getElementById('lblVehicle').innerText = t.vehicle;
+            document.getElementById('lblTripType').innerText = t.tripType;
+            document.getElementById('lblBookingDate').innerText = t.bookingDate;
+            document.getElementById('lblBookingTime').innerText = t.bookingTime;
+            document.getElementById('lblPickup').innerText = t.pickup;
+            document.getElementById('lblDrop').innerText = t.drop;
+            document.getElementById('lblMultiPickup').innerText = t.multiPickup;
+            document.getElementById('lblStop1').innerText = t.stop1;
+            document.getElementById('lblStop2').innerText = t.stop2;
+            document.getElementById('lblMultiDrop').innerText = t.multiDrop;
+            document.getElementById('lblDistance').innerText = t.distance + " (मैनुअल बदल सकते हैं)";
+            document.getElementById('lblTravelTime').innerText = t.travelTime;
+            document.getElementById('lblDays').innerText = t.days;
+            document.getElementById('lblToll').innerText = t.toll;
+            document.getElementById('tollDisclaimerText').innerText = t.tollNote;
+            document.getElementById('lblHours').innerText = t.hours;
+            document.getElementById('lblName').innerText = t.name;
+            document.getElementById('lblPhone').innerText = t.phone;
+            document.getElementById('lblBreakdownTitle').innerText = t.breakdownTitle;
+            document.getElementById('lblCarSelected').innerText = t.carSelectedLabel;
+            document.getElementById('lblCalcFormula').innerText = t.calcFormula;
+            document.getElementById('lblTotalKmBreak').innerText = t.totalKmBreak;
+            document.getElementById('lblBaseFare').innerText = t.baseFare;
+            document.getElementById('lblTollBreak').innerText = t.tollBreak;
+            document.getElementById('lblHoursBreak').innerText = t.hoursBreak;
+            document.getElementById('lblDiscount').innerText = t.discountLabel;
+            document.getElementById('lblTotalFare').innerText = t.totalFare;
+            document.getElementById('btnBook').innerText = t.btnBook;
+            document.getElementById('btnGpsPickup').innerText = "📡 " + (currentLang === 'hi' ? "लाइव लोकेशन" : (currentLang === 'mr' ? "लाईव्ह लोकेशन" : (currentLang === 'ur' ? "لائیو لوکیشن" : "Live Location")));
+
+            calculateFare();
+        }
+
+        function fetchLiveLocation(inputId) {
+            const t = translations[currentLang];
+            if (!navigator.geolocation) {
+                alert(t.gpsError);
+                return;
+            }
+            document.getElementById(inputId).value = t.gpsFetching;
+
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                    const data = await response.json();
+                    if (data && data.address) {
+                        const cityOrArea = data.address.city || data.address.town || data.address.suburb || data.address.village || "Current Location";
+                        document.getElementById(inputId).value = cityOrArea;
+                        autoFetchDistance();
+                    } else {
+                        document.getElementById(inputId).value = `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+                    }
+                } catch (e) {
+                    document.getElementById(inputId).value = `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+                }
+            }, (error) => {
+                alert(t.gpsError);
+                document.getElementById(inputId).value = "";
+            }, { timeout: 10000, enableHighAccuracy: true });
+        }
+
+        function handleStandardSearch(inputId) {
+            const query = document.getElementById(inputId).value.trim();
+            const sugBox = document.getElementById(`${inputId}-suggestions`);
+
+            clearTimeout(searchTimer);
+            if (query.length < 2 || query.includes("📡")) {
+                sugBox.style.display = 'none';
+                return;
+            }
+
+            searchTimer = setTimeout(async () => {
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ", India")}&limit=4`);
+                    const data = await response.json();
+                    sugBox.innerHTML = '';
+                    if (data.length > 0) {
+                        data.forEach(place => {
+                            const item = document.createElement('div');
+                            item.className = 'suggestion-item';
+                            item.innerText = place.display_name;
+                            item.onmousedown = function() {
+                                document.getElementById(inputId).value = place.display_name.split(',')[0];
+                                sugBox.style.display = 'none';
+                                autoFetchDistance();
+                            };
+                            sugBox.appendChild(item);
+                        });
+                        sugBox.style.display = 'block';
+                    } else {
+                        sugBox.style.display = 'none';
+                    }
+                } catch (e) {
+                    sugBox.style.display = 'none';
+                }
+            }, 300);
+        }
+
+        function hideSuggestions(inputId) {
+            setTimeout(() => {
+                const sugBox = document.getElementById(`${inputId}-suggestions`);
+                if(sugBox) sugBox.style.display = 'none';
+                autoFetchDistance();
+            }, 250);
+        }
+
+        function onTripTypeChange() {
+            const type = document.getElementById('tripTypeSelect').value;
+            document.getElementById('standardRouteContainer').style.display = (type === 'multicity') ? 'none' : 'block';
+            document.getElementById('multiCityContainer').style.display = (type === 'multicity') ? 'block' : 'none';
+            
+            if (baseOneWayKmCache > 0) {
+                const isRoundTrip = (type === 'roundtrip');
+                let finalKm = isRoundTrip ? baseOneWayKmCache * 2 : baseOneWayKmCache;
+                document.getElementById('distance').value = finalKm;
+                
+                const durationSec = (baseOneWayKmCache / 50) * 3600;
+                document.getElementById('travelTime').value = formatDurationWithTraffic(durationSec, isRoundTrip);
+                document.getElementById('tollTax').value = calculateHighwayToll(baseOneWayKmCache, isRoundTrip);
+            }
+            calculateFare();
+        }
+
+        function calculateHighwayToll(distanceKm, isRoundTrip) {
+            const t = translations[currentLang];
+            if (distanceKm < 30) {
+                document.getElementById('tollPlazaTag').innerText = "";
+                return 0;
+            }
+            const estimatedPlazas = Math.round(distanceKm / 75) || 1;
+            const multiplier = isRoundTrip ? 4.4 : 2.2;
+            const estimatedToll = Math.round(distanceKm * multiplier);
+            document.getElementById('tollPlazaTag').innerText = `🛣️ ~${isRoundTrip ? estimatedPlazas * 2 : estimatedPlazas}${t.approxTolls}`;
+            return estimatedToll;
+        }
+
+        function formatDurationWithTraffic(rawSeconds, isRoundTrip) {
+            const t = translations[currentLang];
+            let totalSeconds = isRoundTrip ? rawSeconds * 2 : rawSeconds;
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.round((totalSeconds % 3600) / 60);
+            return hours > 0 ? `${hours} ${t.hoursUnit} ${minutes} ${t.minsUnit}` : `${minutes} ${t.minsUnit}`;
+        }
+
+        function onManualKmChange() {
+            const km = parseFloat(document.getElementById('distance').value) || 0;
+            const tripType = document.getElementById('tripTypeSelect').value;
+            const isRoundTrip = (tripType === 'roundtrip');
+
+            if (km > 0) {
+                baseOneWayKmCache = isRoundTrip ? km / 2 : km;
+                const autoToll = calculateHighwayToll(baseOneWayKmCache, isRoundTrip);
+                document.getElementById('tollTax').value = autoToll;
+                const approxSeconds = (baseOneWayKmCache / 50) * 3600;
+                document.getElementById('travelTime').value = formatDurationWithTraffic(approxSeconds, isRoundTrip);
+            } else {
+                document.getElementById('tollTax').value = 0;
+                document.getElementById('travelTime').value = "";
+                baseOneWayKmCache = 0;
+            }
+            calculateFare();
+        }
+
+        async function getLiveLegDistance(locA, locB) {
+            if (!locA || !locB) return 0;
+            const a = locA.trim().toLowerCase();
+            const b = locB.trim().toLowerCase();
+            if (a === b) return 0;
+
+            const key1 = `${a}-${b}`;
+            const key2 = `${b}-${a}`;
+            if (routeDistanceTable[key1]) return routeDistanceTable[key1];
+            if (routeDistanceTable[key2]) return routeDistanceTable[key2];
+
+            try {
+                const resP = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locA + ", India")}&limit=1`);
+                const dataP = await resP.json();
+                const resD = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locB + ", India")}&limit=1`);
+                const dataD = await resD.json();
+
+                if (dataP.length > 0 && dataD.length > 0) {
+                    const lat1 = parseFloat(dataP[0].lat), lon1 = parseFloat(dataP[0].lon);
+                    const lat2 = parseFloat(dataD[0].lat), lon2 = parseFloat(dataD[0].lon);
+                    
+                    const R = 6371; 
+                    const dLat = (lat2 - lat1) * Math.PI / 180;
+                    const dLon = (lon2 - lon1) * Math.PI / 180;
+                    const earthDist = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                              Math.sin(dLon/2) * Math.sin(dLon/2);
+                    const c = 2 * Math.atan2(Math.sqrt(earthDist), Math.sqrt(1-earthDist));
+                    const straightKm = R * c;
+                    return Math.round(straightKm * 1.35);
+                }
+            } catch (err) {}
+
+            return 300;
+        }
+
+        async function autoFetchDistance() {
+            const tripType = document.getElementById('tripTypeSelect').value;
+            const statusBox = document.getElementById('distStatus');
+            const t = translations[currentLang];
+            const isRoundTrip = (tripType === 'roundtrip');
+            let oneWayKm = 0;
+
+            if (tripType === 'multicity') {
+                const p = document.getElementById('multiPickup').value.trim();
+                const s1 = document.getElementById('stop1').value.trim();
+                const s2 = document.getElementById('stop2').value.trim();
+                const d = document.getElementById('multiDrop').value.trim();
+
+                if (p.length >= 2 && d.length >= 2) {
+                    statusBox.style.display = 'block';
+                    statusBox.innerText = "⏳ " + t.distCalc;
+                    let leg1 = 0, leg2 = 0, leg3 = 0;
+                    if (s1.length >= 2) {
+                        leg1 = await getLiveLegDistance(p, s1);
+                        if (s2.length >= 2) {
+                            leg2 = await getLiveLegDistance(s1, s2);
+                            leg3 = await getLiveLegDistance(s2, d);
+                        } else {
+                            leg2 = await getLiveLegDistance(s1, d);
+                        }
+                    } else if (s2.length >= 2) {
+                        leg1 = await getLiveLegDistance(p, s2);
+                        leg2 = await getLiveLegDistance(s2, d);
+                    } else {
+                        leg1 = await getLiveLegDistance(p, d);
+                    }
+                    oneWayKm = leg1 + leg2 + leg3;
+                }
+            } else {
+                let p = document.getElementById('pickup').value.trim();
+                let d = document.getElementById('drop').value.trim();
+
+                if (p.length >= 2 && d.length >= 2) {
+                    statusBox.style.display = 'block';
+                    statusBox.innerText = "⏳ " + t.distCalc;
+                    oneWayKm = await getLiveLegDistance(p, d);
+                }
+            }
+
+            if (oneWayKm > 0) {
+                baseOneWayKmCache = oneWayKm;
+                let finalKm = isRoundTrip ? oneWayKm * 2 : oneWayKm;
+
+                document.getElementById('distance').value = finalKm;
+                const durationSec = (oneWayKm / 50) * 3600;
+                const formattedTime = formatDurationWithTraffic(durationSec, isRoundTrip);
+                document.getElementById('travelTime').value = formattedTime;
+
+                statusBox.style.display = 'block';
+                statusBox.innerText = `✅ ${t.distFound} ${finalKm} KM (${formattedTime})`;
+
+                const estimatedToll = calculateHighwayToll(oneWayKm, isRoundTrip);
+                document.getElementById('tollTax').value = estimatedToll;
+                calculateFare();
+            } else {
+                statusBox.style.display = 'none';
+            }
+        }
+
+        // Firestore cars snapshot listener with Hatchback filter applied
         db.collection("cars").onSnapshot(snapshot => {
             const select = document.getElementById('carSelect');
-            select.innerHTML = '<option value="">-- Select Vehicle --</option>';
+            const t = translations[currentLang];
+            let defaultOptions = `<option value="">${t.chooseVehicle}</option>`;
             carsData = {};
             
             snapshot.forEach(doc => {
                 const car = doc.data();
+                const carNameLower = (car.name || "").toLowerCase();
+                
+                if (carNameLower.includes("hatchback") || carNameLower.includes("हचबैक")) {
+                    return; 
+                }
+
                 carsData[car.name] = car;
-                select.innerHTML += `<option value="${car.name}">${car.name} (₹${car.rate}/km)</option>`;
+                let seating = "";
+                if (car.seats) {
+                    seating = parseInt(car.seats) === 4 ? " (4+1 Seater)" : ` (${car.seats} Seater)`;
+                }
+                defaultOptions += `<option value="${car.name}">${car.name}${seating} (₹${car.rate}/km)</option>`;
             });
+            select.innerHTML = defaultOptions;
+            calculateFare();
         });
 
-        // 2. Sync Live Notice & Terms from Admin
         db.collection("settings").doc("appConfig").onSnapshot(doc => {
             if (doc.exists) {
                 const config = doc.data();
                 if (config.notice) {
                     document.getElementById('noticeBanner').innerText = "📢 " + config.notice;
                     document.getElementById('noticeBanner').style.display = 'block';
+                } else {
+                    document.getElementById('noticeBanner').style.display = 'none';
                 }
                 if (config.terms) {
                     document.getElementById('termsBox').innerText = "📝 Important Info:\n" + config.terms;
                     document.getElementById('termsBox').style.display = 'block';
+                } else {
+                    document.getElementById('termsBox').style.display = 'none';
                 }
             }
         });
 
-        // 3. Smart Fare Calculation (KM + Bhatta + Extra Hours - Discount)
         function calculateFare() {
             const carName = document.getElementById('carSelect').value;
             const inputKm = parseFloat(document.getElementById('distance').value) || 0;
+            const days = parseInt(document.getElementById('numDays').value) || 1;
+            const toll = parseFloat(document.getElementById('tollTax').value) || 0;
             const hours = parseFloat(document.getElementById('extraHours').value) || 0;
+            const tripType = document.getElementById('tripTypeSelect').value;
 
-            if (carName && carsData[carName] && inputKm > 0) {
-                const car = carsData[carName];
+            if (carName && inputKm > 0) {
+                const car = carsData[carName] || {};
+                let rate = car.rate || 12;
                 
-                // Minimum KM Check
                 const appliedKm = (car.minKm && inputKm < car.minKm) ? car.minKm : inputKm;
+                let baseFare = appliedKm * rate;
                 
-                let baseFare = appliedKm * car.rate;
-                let bhatta = car.bhatta || 0;
-                let extraHourFare = hours * (car.extraHour || 0);
+                let singleDayBhatta = car.bhatta !== undefined ? car.bhatta : 300;
+                let totalBhatta = singleDayBhatta * days;
+                let extraHourFare = hours * (car.extraHour || 100);
 
-                let total = baseFare + bhatta + extraHourFare;
-
-                // Discount calculation
+                let grossTotal = baseFare + totalBhatta + toll + extraHourFare;
+                let discountAmount = 0;
                 if (car.discount && car.discount > 0) {
-                    total = total - (total * (car.discount / 100));
+                    discountAmount = grossTotal * (car.discount / 100);
+                    grossTotal -= discountAmount;
                 }
 
-                document.getElementById('fareDisplay').innerText = `Total Fare: ₹${Math.round(total)}`;
+                const finalTotal = Math.round(grossTotal);
+                
+                let seatLabel = "N/A";
+                if (car.seats) {
+                    seatLabel = parseInt(car.seats) === 4 ? "4+1 Seater" : `${car.seats} Seater`;
+                }
+                const seatingInfo = ` [${seatLabel}]`;
+
+                let tripTypeNameText = "";
+                let formulaDesc = "";
+                if (tripType === 'oneway') {
+                    tripTypeNameText = `🗺️ यात्रा प्रकार: वन-वे ट्रिप (One-Way Trip)<br><span style="font-size: 11px; color: #facc15;">ℹ️ नोट: वन-वे ट्रिप में ड्राइवर को वापसी का खाली सफर तय करना पड़ता है, इसलिए कुल किराए में जाने और आने दोनों का अनुमानित सफर और टोल शामिल है।</span>`;
+                    formulaDesc = `लागू कुल ${appliedKm} KM (जाने + वापसी सफर) × ₹${rate}/km`;
+                } else if (tripType === 'roundtrip') {
+                    tripTypeNameText = "🗺️ यात्रा प्रकार: राउंड ट्रिप (आना और जाना - Round Trip)";
+                    formulaDesc = `कुल दूरी ${inputKm} KM (आना+जाना) × ₹${rate}/km`;
+                } else if (tripType === 'multicity') {
+                    tripTypeNameText = "🗺️ यात्रा प्रकार: मल्टी-सिटी / वाया रूट (Multi-City Route)";
+                    formulaDesc = `विभिन्न स्टॉप मिलाकर कुल ${inputKm} KM × ₹${rate}/km`;
+                } else if (tripType === 'airport') {
+                    tripTypeNameText = "🗺️ यात्रा प्रकार: एयरपोर्ट ट्रांसफर (Airport Transfer)";
+                    formulaDesc = `एयरपोर्ट रूट दूरी ${inputKm} KM × ₹${rate}/km`;
+                }
+
+                document.getElementById('tripModeExplain').innerHTML = tripTypeNameText;
+                document.getElementById('carInfoText').innerText = `${carName}${seatingInfo}`;
+                document.getElementById('formulaText').innerText = formulaDesc;
+                document.getElementById('totalKmText').innerText = `${appliedKm} KM`;
+                document.getElementById('baseFareText').innerText = `₹${Math.round(baseFare)}`;
+                document.getElementById('daysText').innerText = days;
+                document.getElementById('bhattaText').innerText = `₹${totalBhatta} (₹${singleDayBhatta} प्रति दिन)`;
+                document.getElementById('tollText').innerText = `₹${toll}`;
+                document.getElementById('extraHoursText').innerText = `₹${extraHourFare}`;
+
+                if (discountAmount > 0) {
+                    document.getElementById('discountText').innerText = `-₹${Math.round(discountAmount)} (${car.discount}%)`;
+                    document.getElementById('discountRow').style.display = 'flex';
+                } else {
+                    document.getElementById('discountRow').style.display = 'none';
+                }
+
+                document.getElementById('totalFareText').innerText = `₹${finalTotal}`;
+                document.getElementById('breakdownBox').style.display = 'block';
             } else {
-                document.getElementById('fareDisplay').innerText = `Total Fare: ₹0`;
+                document.getElementById('breakdownBox').style.display = 'none';
             }
         }
 
@@ -154,19 +1099,59 @@
             const name = document.getElementById('custName').value.trim();
             const phone = document.getElementById('custPhone').value.trim();
             const car = document.getElementById('carSelect').value;
-            const pickup = document.getElementById('pickup').value.trim();
-            const drop = document.getElementById('drop').value.trim();
-            const fare = document.getElementById('fareDisplay').innerText;
+            const tripType = document.getElementById('tripTypeSelect').value;
+            const bookingDate = document.getElementById('bookingDate').value;
+            const bookingTime = document.getElementById('bookingTime').value;
+            const km = document.getElementById('distance').value;
+            const travelTime = document.getElementById('travelTime').value;
+            const days = document.getElementById('numDays').value;
+            const fare = document.getElementById('totalFareText').innerText;
+            const toll = document.getElementById('tollTax').value || "0";
+            const t = translations[currentLang];
 
-            if (!name || !phone || !car || !pickup || !drop) {
-                alert("Please fill all details!");
+            let pickup = "", drop = "", viaStopsStr = "N/A";
+
+            if (tripType === 'multicity') {
+                pickup = document.getElementById('multiPickup').value.trim();
+                drop = document.getElementById('multiDrop').value.trim();
+                const s1 = document.getElementById('stop1').value.trim();
+                const s2 = document.getElementById('stop2').value.trim();
+                viaStopsStr = `Stop 1: ${s1 || 'None'}, Stop 2: ${s2 || 'None'}`;
+            } else {
+                pickup = document.getElementById('pickup').value.trim();
+                drop = document.getElementById('drop').value.trim();
+            }
+
+            if (!name || !phone || !car || !pickup || !drop || !km || !bookingDate || !bookingTime) {
+                alert(t.alertFill);
                 return;
             }
 
+            let seatLabel = "N/A";
+            if (carsData[car] && carsData[car].seats) {
+                seatLabel = parseInt(carsData[car].seats) === 4 ? "4+1 Seater" : `${carsData[car].seats} Seater`;
+            }
+            const carDetails = `${car} (${seatLabel})`;
+
+            // Data saved to Firebase Cloud Firestore for Admin App to view instantly
             db.collection("bookings").add({
-                name, phone, car, pickup, drop, total: fare, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                name, phone, 
+                car: carDetails, 
+                tripType, 
+                bookingDate,       // यात्रा की तारीख
+                bookingTime,       // यात्रा का समय
+                pickup, drop,
+                viaStops: viaStopsStr,
+                distance: km + " KM",
+                estimatedTime: travelTime,
+                duration: days + " Days",
+                estimatedToll: "₹" + toll,
+                total: fare, 
+                language: currentLang,
+                isNew: true, 
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
-                alert("✅ Booking Request Sent Successfully!");
+                alert(t.alertSuccess);
                 document.getElementById('custName').value = '';
                 document.getElementById('custPhone').value = '';
             });
