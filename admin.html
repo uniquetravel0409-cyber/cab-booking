@@ -41,10 +41,13 @@
     <!-- 🛠️ Main Control Panel -->
     <div id="adminPanel" style="display:none;">
         
-        <!-- 3. Live Customer Bookings (Top पर ताकि तुरंत दिखे) -->
-        <div class="card" style="border: 1px solid #4ba3e3;">
-            <h3 style="color:#4ba3e3; font-size:18px; text-align:center; margin-top:0;">📋 Live Customer Bookings & Schedule</h3>
-            <div class="sub">कस्टमर द्वारा की गई नई बुकिंग (तारीख और समय सहित)</div>
+        <!-- Live Customer Bookings -->
+        <div class="card" style="border: 1px solid #22c55e;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="color:#22c55e; font-size:18px; margin:0;">🚨 Live Bookings & Alerts</h3>
+                <button onclick="requestNotificationPermission()" style="background:#0ea5e9; border:none; color:#fff; padding:6px 10px; border-radius:6px; font-size:11px; cursor:pointer;">🔔 नोटिफिकेशन चालू करें</button>
+            </div>
+            <div class="sub" style="text-align: left; margin-bottom: 10px;">नई बुकिंग आते ही घंटी बजेगी और नोटिफिकेशन दिखेगा</div>
             <div style="overflow-x: auto;">
                 <table>
                     <thead>
@@ -146,6 +149,7 @@
 
     <script>
         const CORRECT_PASSWORD = "YASMEEN";
+        let isInitialLoad = true;
 
         function checkPassword() {
             if (document.getElementById('adminPassword').value === CORRECT_PASSWORD) {
@@ -155,6 +159,36 @@
             } else {
                 document.getElementById('loginError').style.display = 'block';
             }
+        }
+
+        function requestNotificationPermission() {
+            if ("Notification" in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        alert("✅ नोटिफिकेशन चालू हो गए हैं! अब नया ऑर्डर आने पर आपको अलर्ट मिलेगा।");
+                    } else {
+                        alert("⚠️ आपने नोटिफिकेशन की अनुमति नहीं दी है।");
+                    }
+                });
+            } else {
+                alert("आपका ब्राउज़र नोटिफिकेशन सपोर्ट नहीं करता।");
+            }
+        }
+
+        // Beep Sound Function using Web Audio API
+        function playBeepSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // Frequency in Hz
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.4); // 0.4 seconds beep
+            } catch(e) {}
         }
 
         function initAdmin() {
@@ -188,14 +222,37 @@
                 });
             });
 
-            // Realtime Bookings List with Date & Time
+            // Realtime Bookings List with Sound & Push Notification
             db.collection("bookings").orderBy("timestamp", "desc").onSnapshot(snapshot => {
                 const tbody = document.getElementById('bookingsTable');
+                
                 if (snapshot.empty) {
                     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#aaa;">कोई नई बुकिंग नहीं है।</td></tr>`;
+                    isInitialLoad = false;
                     return;
                 }
+
+                // Check if a brand new booking was added after page load
+                if (!isInitialLoad) {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === "added") {
+                            const b = change.doc.data();
+                            playBeepSound(); // Play alert sound
+                            
+                            // Trigger browser push notification
+                            if ("Notification" in window && Notification.permission === "granted") {
+                                new Notification("🚖 नई कैब बुकिंग आई है!", {
+                                    body: `${b.name} (${b.phone}) ने ${b.car} बुक किया है!\nरूट: ${b.pickup} ➔ ${b.drop}`,
+                                    icon: "https://cdn-icons-png.flaticon.com/512/3097/3097144.png"
+                                });
+                            }
+                        }
+                    });
+                }
+
+                isInitialLoad = false;
                 tbody.innerHTML = '';
+                
                 snapshot.forEach(doc => {
                     const b = doc.data();
                     tbody.innerHTML += `
